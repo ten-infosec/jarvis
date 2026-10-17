@@ -1,0 +1,8 @@
+# Allowlist: exclude EVERYTHING, then let in only what the cloud image needs.
+# Private data, .env, .venv, scripts cannot slip in even by mistake.
+*
+!requirements-cloud.txt
+!app/
+!data/arxiv/papers.jsonl
+!data/arxiv/chroma/
+**/__pycache__

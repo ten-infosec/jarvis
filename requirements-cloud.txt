@@ -1,0 +1,8 @@
+chromadb==1.5.9
+fastapi==0.143.3
+google-genai==2.31.0
+numpy==2.5.4
+pydantic==2.14.1
+python-dotenv==1.2.4
+rank-bm25==0.2.2
+uvicorn==0.54.0

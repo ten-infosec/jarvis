@@ -1,0 +1,25 @@
+# ===== Cloud image: public arXiv data + Gemini. NO torch, NO private data, NO API key =====
+
+FROM python:3.12-slim
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+WORKDIR /app
+
+# Libraries first (cached layer)
+COPY requirements-cloud.txt .
+RUN pip install --no-cache-dir -r requirements-cloud.txt
+
+# App code + PUBLIC paper data and its vector index
+COPY app ./app
+COPY data/arxiv ./data/arxiv
+
+# Cloud mode settings. The API key is NOT here: it is injected at run time
+ENV JARVIS_MODE=cloud \
+    ARXIV_DIR=/app/data/arxiv \
+    JARVIS_DATA_DIR=/tmp/jarvis
+
+# Run as a normal user instead of root (if the app is ever broken into, the attacker gets fewer permissions)
+RUN useradd --create-home appuser && chown -R appuser /app
+USER appuser
+
+# Cloud Run tells the app which port to use through $PORT (8080 when not set)
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
