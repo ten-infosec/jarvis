@@ -1,12 +1,13 @@
-# ===== E2/E3: compare vector / BM25 / weighted hybrid retrieval =====
-# Usage: python scripts/eval_hybrid.py --tag E3
-#        python scripts/eval_hybrid.py --tag E3 --weights 1,1.5,2,3
+# ===== E2/E3/E6: vector / BM25 / weighted hybrid / + reranker =====
+# Usage: python scripts/eval_hybrid.py --tag E3 --weights 1,1.5,2,3
+#        python scripts/eval_hybrid.py --tag E6 --rerank
 
 
 import argparse
 import csv
 import json
 import re
+import time
 from collections import defaultdict
 from pathlib import Path
 
@@ -22,18 +23,24 @@ COLLECTIONS_CSV = Path(r"C:\instagram_export\output\collections.csv")
 RESULTS_CSV = Path(r"C:\instagram_export\output\eval_results.csv")
 MIN_SIZE = 9
 RRF_K = 60
+# Text given to the reranker per post (captions put the key info first)
+RERANK_CHARS = 512
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--k", type=int, default=10)
-parser.add_argument("--tag", default="E3")
+parser.add_argument("--tag", default="E6")
 parser.add_argument("--model", default="intfloat/multilingual-e5-small")
 parser.add_argument("--collection", default="insta_v0")
-# --weights: vector weights to try (BM25 weight is always 1). "1" reproduces E2_hybrid
-parser.add_argument("--weights", default="1,1.5,2,3")
+# Default is now the weight chosen in E3
+parser.add_argument("--weights", default="1.5")
+# --rerank: also test "hybrid + reranker"
+parser.add_argument("--rerank", action="store_true")
+parser.add_argument("--rerank-model", default="BAAI/bge-reranker-v2-m3")
+# How many top hybrid results the reranker re-judges
+parser.add_argument("--rerank-n", type=int, default=30)
 args = parser.parse_args()
 
 Q_PREFIX = "query: " if "e5" in args.model else ""
-# "1,1.5,2,3" -> [1.0, 1.5, 2.0, 3.0]
 WEIGHTS = [float(w) for w in args.weights.split(",")]
 
 
@@ -49,8 +56,10 @@ def tokenize(text):
     return tokens
 
 
-# ===== 1) BM25 index over saved posts =====
+# ===== 1) BM25 index over saved posts (+ text lookup for the reranker) =====
 urls, tokenized_docs = [], []
+# url_text: post URL -> first 512 characters, so the reranker can read each candidate
+url_text = {}
 with open(CORPUS, encoding="utf-8") as f:
     for line in f:
         doc = json.loads(line)
@@ -61,6 +70,7 @@ with open(CORPUS, encoding="utf-8") as f:
             continue
         urls.append(url)
         tokenized_docs.append(tokenize(doc["text"]))
+        url_text[url] = doc["text"][:RERANK_CHARS]
 bm25 = BM25Okapi(tokenized_docs)
 print(f"BM25 documents: {len(urls):,}")
 
@@ -68,7 +78,14 @@ print(f"BM25 documents: {len(urls):,}")
 model = SentenceTransformer(args.model)
 col = chromadb.PersistentClient(path=INDEX_DIR).get_collection(args.collection)
 
-# ===== 3) Ground truth =====
+# ===== 3) Reranker (only loaded when --rerank is given) =====
+reranker = None
+if args.rerank:
+    # CrossEncoder reads (question, text) together and returns one relevance score
+    from sentence_transformers import CrossEncoder
+    reranker = CrossEncoder(args.rerank_model, max_length=512)
+
+# ===== 4) Ground truth =====
 truth = defaultdict(set)
 with open(COLLECTIONS_CSV, encoding="utf-8-sig") as f:
     for r in csv.DictReader(f):
@@ -102,12 +119,22 @@ def vector_rank(query, n):
 
 
 def rrf(ranked_lists, weights):
-    # Each list adds weight / (RRF_K + rank); a bigger weight makes that list count more
     score = defaultdict(float)
     for ranked, w in zip(ranked_lists, weights):
         for rank, url in enumerate(ranked, start=1):
             score[url] += w / (RRF_K + rank)
     return sorted(score, key=lambda u: -score[u])
+
+
+def rerank(query, ranked):
+    # Only the top N candidates are re-judged (the reranker is slow)
+    cands = ranked[:args.rerank_n]
+    # One (question, post text) pair per candidate
+    pairs = [(query, url_text.get(u, "")) for u in cands]
+    scores = reranker.predict(pairs)
+    # Sort candidates by reranker score, highest first
+    order = sorted(range(len(cands)), key=lambda i: -scores[i])
+    return [cands[i] for i in order]
 
 
 def metrics(top, gold, k):
@@ -121,17 +148,23 @@ def metrics(top, gold, k):
     }
 
 
-# ===== 4) Evaluate every mode on the same questions =====
-# Mode names: vector, bm25, w1, w1.5, w2, w3 ... (":g" drops trailing ".0")
+# ===== 5) Evaluate =====
 MODES = ["vector", "bm25"] + [f"w{w:g}" for w in WEIGHTS]
+if args.rerank:
+    # "_rr" = the same hybrid list, re-ordered by the reranker
+    MODES += [f"w{w:g}_rr" for w in WEIGHTS]
+
 rows, table = [], []
+start = time.time()
 for name, gold in tests.items():
     v = vector_rank(name, 50)
     b = bm25_rank(name, 50)
     results = {"vector": v, "bm25": b}
-    # One fused ranking per vector weight (BM25 weight fixed at 1)
     for w in WEIGHTS:
-        results[f"w{w:g}"] = rrf([v, b], [w, 1.0])
+        fused = rrf([v, b], [w, 1.0])
+        results[f"w{w:g}"] = fused
+        if args.rerank:
+            results[f"w{w:g}_rr"] = rerank(name, fused)
     line = {"collection": name, "size": len(gold)}
     for mode in MODES:
         m = metrics(results[mode][:args.k], gold, args.k)
@@ -139,13 +172,15 @@ for name, gold in tests.items():
         rows.append({"tag": f"{args.tag}_{mode}", "k": args.k, "collection": name,
                      "size": len(gold), **m})
     table.append(line)
+    # Progress line, because the reranker takes a while on CPU
+    print(f"  done: {name}  ({time.time() - start:.0f}s)")
 
-# ===== 5) Print per-collection RR (rank of first hit), then averages =====
-header = "".join(f"{m:>8}" for m in MODES)
+# ===== 6) Print per-collection RR, then averages =====
+header = "".join(f"{m:>9}" for m in MODES)
 print(f"\nRR per collection (1.00 = first result is correct)")
 print(f"{'collection':24} {'size':>4}{header}")
 for t in table:
-    cells = "".join(f"{t[m]['rr']:8.2f}" for m in MODES)
+    cells = "".join(f"{t[m]['rr']:9.2f}" for m in MODES)
     print(f"{t['collection'][:24]:24} {t['size']:4d}{cells}")
 
 print()
@@ -153,15 +188,15 @@ for mode in MODES:
     sub = [t[mode] for t in table]
     n = len(sub)
     avg = {key: sum(s[key] for s in sub) / n for key in ["hit", "precision", "recall", "rr"]}
-    print(f"[{args.tag}_{mode:6}] k={args.k}  Hit={avg['hit']:.3f}  P@k={avg['precision']:.3f}  "
+    print(f"[{args.tag}_{mode:8}] k={args.k}  Hit={avg['hit']:.3f}  P@k={avg['precision']:.3f}  "
           f"R@k={avg['recall']:.3f}  MRR={avg['rr']:.3f}")
 
-# ===== 6) Append to results file =====
+# ===== 7) Append to results file =====
 with open(RESULTS_CSV, "a", encoding="utf-8-sig", newline="") as f:
     writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
     writer.writerows(rows)
 
 
-# → 벡터 쪽 무게를 1, 1.5, 2, 3으로 바꿔 가며 RRF로 합친 결과를 한 번에 비교하겠다.
-#   w1은 E2_hybrid와 같은 값이 나와야 정상이고(검증용),
-#   Hit(놓친 컬렉션 수)와 MRR(첫 정답 순위)을 함께 보면서 가장 균형 좋은 무게를 고른다.
+# → E3에서 고른 하이브리드(w1.5) 결과 상위 30개를, 질문과 글을 함께 읽는 리랭커로 다시 순위를 매기겠다.
+#   리랭커 전(w1.5)과 후(w1.5_rr)를 같은 15개 질문으로 비교해서, 2차 심사가 실제로 정답을 위로 올리는지 확인한다.
+#   리랭커는 CPU에서 느리니 컬렉션마다 진행 시간을 출력한다.
