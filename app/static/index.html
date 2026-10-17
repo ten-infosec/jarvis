@@ -138,7 +138,15 @@ async function ask(question) {
         retrieve_only: retrieveOnlyBox.checked,
       }),
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+       if (!res.ok) {
+      // Read the server's reason (e.g. "Too many requests...") and show it as plain text
+      let detail = "";
+      try {
+        const body = await res.json();
+        detail = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail);
+      } catch (e) {}
+      throw new Error(`HTTP ${res.status} ${detail}`);
+    }
     const data = await res.json();
     clearInterval(timer);
     renderAnswer(botDiv, data);
