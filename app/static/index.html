@@ -29,12 +29,12 @@
 </style>
 </head>
 <body>
-<header><h1>Jarvis <span>· local second brain (127.0.0.1 only)</span></h1></header>
+<header><h1>Jarvis <span id="subtitle">· local second brain (127.0.0.1 only)</span></h1></header>
 <main id="chat"></main>
 
 <form id="form">
   <div class="opts">
-    <label>Source
+      <label id="sourceBox">Source
       <select id="source">
         <option value="">all</option>
         <option value="saved" selected>saved</option>
@@ -178,6 +178,23 @@ questionBox.addEventListener("keydown", (e) => {
     form.requestSubmit();
   }
 });
+
+// ===== Adjust the page when the server runs in cloud mode =====
+// /health tells which mode the server is in; the cloud demo searches public papers only
+fetch("/health")
+  .then(r => r.json())
+  .then(h => {
+    if (h.mode === "cloud") {
+      document.title = "Jarvis · Medical AI Papers";
+      document.getElementById("subtitle").textContent =
+        "· medical AI paper search (arXiv + Gemini) · questions are logged for service quality";
+      // Source choice only matters for the private local data, so hide it
+      document.getElementById("sourceBox").style.display = "none";
+      sourceSel.value = "";
+      questionBox.placeholder = "Ask about medical AI papers (English works best, 한국어도 가능)";
+    }
+  })
+  .catch(() => {});
 </script>
 </body>
 </html>

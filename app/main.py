@@ -39,7 +39,12 @@ def write_log(record):
     with _log_lock:
         with open(LOG_FILE, "a", encoding="utf-8") as f:
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
-
+    # Cloud Run keeps whatever is printed to stdout in Cloud Logging (the /tmp file is lost when the server scales to 0).
+    # A one-line JSON becomes a structured log: each field can be searched, and "severity" sets the log level.
+    if MODE == "cloud":
+        status = record.get("status")
+        severity = "ERROR" if status == "error" else ("WARNING" if status == "rejected" else "INFO")
+        print(json.dumps({"severity": severity, "message": f"ask {status}", **record}, ensure_ascii=False), flush=True)
 
 # ===== Rate limits (cloud mode only) =====
 # Values can be changed with environment variables at deploy time
@@ -83,7 +88,7 @@ def check_limits(ip):
 
 # ===== Request format (3, 4: size limits checked automatically by pydantic -> HTTP 422) =====
 class AskRequest(BaseModel):
-    question: str = Field(min_length=1, max_length=500)
+    question: str = Field(min_length=2, max_length=500)
     source: Optional[str] = None
     mode: Literal["hybrid", "vector"] = "hybrid"
     retrieve_only: bool = False
