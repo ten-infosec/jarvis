@@ -5,12 +5,18 @@
 - Data: public arXiv metadata only (no private data in the cloud image)
 
 ## Build & push
+
+```powershell
 docker build -f Dockerfile.cloud -t jarvis-cloud:<ver> .
 docker tag jarvis-cloud:<ver> asia-northeast3-docker.pkg.dev/jarvis-rag-511912/jarvis/jarvis-cloud:<ver>
 docker push asia-northeast3-docker.pkg.dev/jarvis-rag-511912/jarvis/jarvis-cloud:<ver>
+```
 
 ## Deploy (image only; other settings are kept)
+
+```powershell
 gcloud run deploy jarvis-rag --image asia-northeast3-docker.pkg.dev/jarvis-rag-511912/jarvis/jarvis-cloud:<ver> --region asia-northeast3
+```
 
 ## Settings
 - Runtime service account: jarvis-run (only roles/secretmanager.secretAccessor on gemini-api-key)
@@ -33,6 +39,7 @@ gcloud run deploy jarvis-rag --image asia-northeast3-docker.pkg.dev/jarvis-rag-5
   Fix: also print one-line JSON to stdout (structured logging), searchable with gcloud logging read.
 
 ## Logs
+```powershell
 # Plain text logs (startup, HTTP access)
 gcloud run services logs read jarvis-rag --region asia-northeast3 --limit 20
 
@@ -41,3 +48,4 @@ gcloud logging read "resource.type=cloud_run_revision AND jsonPayload.message:as
 
 # Errors only
 gcloud logging read "resource.type=cloud_run_revision AND jsonPayload.status=error" --limit 20
+```

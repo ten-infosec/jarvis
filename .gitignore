@@ -1,4 +1,4 @@
-﻿.venv/
+.venv/
 __pycache__/
 .env
 *.zip
@@ -6,3 +6,11 @@ data/
 output/
 *.db
 *.sqlite
+
+# Extra safety (security review 2026-10-18)
+.env.*
+!.env.example
+logs/
+*.jsonl
+*.csv
+chroma/
