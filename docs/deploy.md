@@ -4,25 +4,37 @@
 - Project: jarvis-rag-511912 / Region: asia-northeast3 (Seoul)
 - Data: public arXiv metadata only (no private data in the cloud image)
 
-## Build & push
+## Deploy (one command)
+
+```powershell
+.\scripts\deploy.ps1 -Version 0.4 -DryRun   # print the commands only
+.\scripts\deploy.ps1 -Version 0.4           # tests -> build -> push -> deploy -> smoke check
+```
+The script stops at the first failed step, refuses uncommitted changes and reused version tags,
+and passes every argument separately (no comma/quote mistakes). Env vars, secrets and limits are kept.
+
+### Manual fallback
 
 ```powershell
 docker build -f Dockerfile.cloud -t jarvis-cloud:<ver> .
 docker tag jarvis-cloud:<ver> asia-northeast3-docker.pkg.dev/jarvis-rag-511912/jarvis/jarvis-cloud:<ver>
 docker push asia-northeast3-docker.pkg.dev/jarvis-rag-511912/jarvis/jarvis-cloud:<ver>
-```
-
-## Deploy (image only; other settings are kept)
-
-```powershell
 gcloud run deploy jarvis-rag --image asia-northeast3-docker.pkg.dev/jarvis-rag-511912/jarvis/jarvis-cloud:<ver> --region asia-northeast3
 ```
+
+## After each deploy
+- `/health` answers, `/docs` returns 404 (the script checks both)
+- Ask one question, then check `jsonPayload.xff_hops` in the log (expected 1 on Cloud Run).
+  If it is not 1, set TRUSTED_PROXY_HOPS so the rate limit uses the real client IP.
+- Rollback: `gcloud run services update-traffic jarvis-rag --region asia-northeast3 --to-revisions <previous-revision>=100`
 
 ## Settings
 - Runtime service account: jarvis-run (only roles/secretmanager.secretAccessor on gemini-api-key)
 - GEMINI_API_KEY from Secret Manager (never in image or command line)
 - min-instances 0 (cost 0 when idle), max-instances 1 (cost ceiling)
-- App limits: 5 req/min per IP (X-Forwarded-For), 200 req/day, question <= 500 chars, top_n <= 10
+- App limits: 5 req/min per IP, 200 req/day, question 2-500 chars, top_n <= 10
+- Client IP = rightmost X-Forwarded-For entry (minus TRUSTED_PROXY_HOPS, default 0); tracked-IP table is bounded
+- Cloud mode hides /docs and internal error details (details go to the log only)
 
 ## Cost safety
 - Gemini key lives in a project WITHOUT billing (free tier only, 429 instead of charges)
@@ -49,3 +61,11 @@ gcloud logging read "resource.type=cloud_run_revision AND jsonPayload.message:as
 # Errors only
 gcloud logging read "resource.type=cloud_run_revision AND jsonPayload.status=error" --limit 20
 ```
+
+## Tests & CI
+```powershell
+pip install -r requirements-dev.txt
+python -m pytest tests -v      # 25 tests, fake engines: no API key, no network
+```
+GitHub Actions (`.github/workflows/tests.yml`) runs the tests on every push and blocks tracked `.env`,
+data files (data/, *.jsonl, *.csv, chroma) and API-key-like strings.

@@ -1,0 +1,52 @@
+# ===== CI: run tests + block secrets / private data on every push and pull request =====
+name: checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Least privilege: the workflow can only read the repo (no write, no deploy rights)
+permissions:
+  contents: read
+
+jobs:
+  # ----- Unit tests: fake engines, so no API key and no network are needed -----
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false   # do not leave the GitHub token on disk
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependencies
+        run: pip install -r requirements-dev.txt
+      - name: Run tests
+        run: python -m pytest tests -v
+
+  # ----- Guard: secrets and private data must never be committed -----
+  guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Block secret files (.env)
+        run: |
+          bad=$(git ls-files | grep -E '(^|/)\.env($|\.)' | grep -vE '\.env\.example$' || true)
+          if [ -n "$bad" ]; then echo "::error::Secret file tracked: $bad"; exit 1; fi
+      - name: Block private data files
+        run: |
+          bad=$(git ls-files | grep -E '^data/|^output/|\.(jsonl|csv|db|sqlite3?)$|(^|/)chroma(/|$)' || true)
+          if [ -n "$bad" ]; then echo "::error::Data file tracked: $bad"; exit 1; fi
+      - name: Block API-key-like strings
+        # -l prints only file names, so a leaked key is never echoed into the CI log
+        run: |
+          if git grep -lE 'AIza[0-9A-Za-z_-]{35}|(^|[^A-Za-z0-9])sk-[A-Za-z0-9_-]{20,}|ghp_[A-Za-z0-9]{36}|GOCSPX-[A-Za-z0-9_-]{20,}|"private_key_id"[[:space:]]*:|-----BEGIN [A-Z ]*PRIVATE KEY-----'; then
+            echo "::error::Possible API key in the files above. Remove it and rotate the key."
+            exit 1
+          fi

@@ -55,6 +55,8 @@ flowchart LR
 - **개인 데이터 분리:** 클라우드 이미지는 허용 목록(allowlist) 방식으로 공개 데이터만 포함합니다.
 - **비밀값 관리:** API 키는 Secret Manager에 두고, 그 값 하나만 읽을 수 있는 최소 권한 서비스 계정으로 실행합니다.
 - **비용 보호:** 요청 횟수 제한, 입력 길이 제한, 최대 인스턴스 1개, 지출 상한(Spend cap)과 예산 알림을 적용했습니다.
+- **요청 제한 우회 방지:** 클라이언트 IP는 프록시가 붙인 X-Forwarded-For의 가장 오른쪽 값으로 판단하고, 추적 IP 수에 상한을 둡니다.
+- **정보 노출 최소화:** Cloud 모드에서는 API 문서 페이지와 내부 오류 내용을 숨깁니다.
 - **로그:** 요청 기록을 구조화된 JSON 로그로 남겨 Cloud Logging에서 검색할 수 있습니다.
 - **장애 기록:** 2026-10-17 배포 과정에서 발생한 장애와 해결 과정은 [docs/deploy.md](docs/deploy.md)의 *Incidents*에 정리했습니다.
 
@@ -80,11 +82,19 @@ python scripts\build_arxiv_index.py   # 무료 한도에 걸리면 다음 날 �
 $env:JARVIS_MODE="cloud"; uvicorn app.main:app
 ```
 
+### 테스트
+```powershell
+pip install -r requirements-dev.txt
+python -m pytest tests -v   # 25개, 가짜 엔진 사용: API 키·네트워크 불필요
+```
+push할 때마다 GitHub Actions가 테스트를 돌리고, `.env`·개인 데이터·API 키 형태의 문자열이 저장소에 들어가면 막습니다.
+
 ### Docker / 배포
 ```powershell
-docker build -f Dockerfile.cloud -t jarvis-cloud:<ver> .
+.\scripts\deploy.ps1 -Version <ver> -DryRun   # 실행될 명령만 출력
+.\scripts\deploy.ps1 -Version <ver>           # 테스트 → 빌드 → 업로드 → 배포 → 점검
 ```
-빌드, 업로드, Cloud Run 배포 명령은 [docs/deploy.md](docs/deploy.md)를 참고하세요.
+자세한 설정과 수동 명령은 [docs/deploy.md](docs/deploy.md)를 참고하세요.
 
 ---
 
@@ -96,7 +106,9 @@ app/
   rag.py            # Local 엔진: e5 + ChromaDB + BM25 + Ollama
   rag_cloud.py      # Cloud 엔진: Gemini + ChromaDB + BM25 (BM25 fallback)
   static/index.html # 웹 채팅 화면 (출처 링크, XSS 방어)
-scripts/            # 데이터 추출, 인덱스 생성, 평가(eval_*), 로그 통계
+scripts/            # 데이터 추출, 인덱스 생성, 평가(eval_*), 로그 통계, deploy.ps1
+tests/              # main.py 테스트 (요청 제한, 입력 검증, 오류 숨김)
+.github/workflows/  # CI: 테스트 + 비밀값·개인 데이터 차단
 docs/               # 실험 기록, 배포·장애 기록
 Dockerfile          # Local 이미지 (개인 데이터는 실행 시 마운트)
 Dockerfile.cloud    # Cloud 이미지 (torch 없음, 공개 데이터만)
@@ -106,7 +118,7 @@ Dockerfile.cloud    # Cloud 이미지 (torch 없음, 공개 데이터만)
 
 ## 기술 스택
 
-Python · FastAPI · ChromaDB · rank-bm25 · sentence-transformers (e5) · Ollama · Gemini API · Docker · Google Cloud Run · Artifact Registry · Secret Manager · Cloud Logging
+Python · FastAPI · pytest · GitHub Actions · ChromaDB · rank-bm25 · sentence-transformers (e5) · Ollama · Gemini API · Docker · Google Cloud Run · Artifact Registry · Secret Manager · Cloud Logging
 
 ## 다음 계획
 
