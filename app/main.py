@@ -5,9 +5,10 @@
 
 
 import json
+import os
 import threading
 import time
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Literal, Optional
 
@@ -22,9 +23,12 @@ app = FastAPI(title="Jarvis RAG (local)")
 rag = RAG()
 STATIC_DIR = Path(__file__).parent / "static"
 
+# Korea Standard Time (UTC+9, no daylight saving). Containers default to UTC, so set it explicitly
+KST = timezone(timedelta(hours=9))
+
 # ===== Request log =====
 # Stored in the private data folder (never in the git repo) because it contains my questions
-LOG_FILE = Path(r"C:\instagram_export\logs\requests.jsonl")
+LOG_FILE = Path(os.getenv("JARVIS_DATA_DIR", r"C:\instagram_export")) / "logs" / "requests.jsonl"
 LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
 # Only one request may write to the file at a time, so lines never get mixed
 _log_lock = threading.Lock()
@@ -60,7 +64,7 @@ def ask(req: AskRequest):
     t0 = time.time()
     # Fields known before any work starts
     record = {
-        "ts": datetime.now().isoformat(timespec="seconds"),
+                "ts": datetime.now(KST).isoformat(timespec="seconds"),
         "question": req.question, "source": req.source,
         "mode": req.mode, "retrieve_only": req.retrieve_only,
     }

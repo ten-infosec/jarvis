@@ -2,6 +2,7 @@
 
 
 import json
+import os
 import re
 from collections import defaultdict
 from pathlib import Path
@@ -13,11 +14,14 @@ from sentence_transformers import SentenceTransformer
 
 
 # ===== Settings (same values as ask.py, chosen in E3/E5) =====
-CORPUS = Path(r"C:\instagram_export\output\corpus.jsonl")
-INDEX_DIR = r"C:\instagram_export\index\chroma"
+# JARVIS_DATA_DIR: set to /data inside Docker; falls back to the laptop folder when not set
+DATA_DIR = Path(os.getenv("JARVIS_DATA_DIR", r"C:\instagram_export"))
+CORPUS = DATA_DIR / "output" / "corpus.jsonl"
+INDEX_DIR = str(DATA_DIR / "index" / "chroma")
 MODEL_NAME = "intfloat/multilingual-e5-small"
 COLLECTION = "insta_v0"
-OLLAMA_URL = "http://localhost:11434/api/chat"
+# Inside Docker, "localhost" is the container itself, so the host's Ollama is reached via host.docker.internal
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/chat")
 LLM = "qwen2.5:3b"
 CANDIDATES = 50
 RRF_K = 60

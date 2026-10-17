@@ -1,0 +1,12 @@
+.venv
+.git
+__pycache__
+*.pyc
+scripts
+docs
+data
+output
+.env
+*.zip
+*.db
+*.sqlite
