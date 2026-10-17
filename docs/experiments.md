@@ -25,3 +25,8 @@ Eval: 15 saved collections (size ≥ 9) as ground truth, query = collection name
 - E3: vector weight 1.5 recovers Hit (0.733) and keeps MRR 0.497 → default for ask.py
 - Caution: weight tuned on the same 15 queries (overfitting risk); small because 1 parameter + plateau 1.5–2
 - Still failing: 인테리어, 인재, 책 정보, 배우고 싶은 것들 → query expansion later
+
+- E4: ask.py → hybrid (w1.5) + one result per post (fixes duplicate [2]/[4])
+- E4: natural question "내가 저장한 의학 공부 관련 게시물 알려줘" was worse with hybrid (filler word "저장" matched "저장하고 보세요")
+- E5: stopword removal before search ("… 알려줘" → "의학 공부") → medical posts 2–3/5 → 4/5; LLM still receives the original question
+- Remaining noise: generic word "공부" pulls a language-study post → reranker later
