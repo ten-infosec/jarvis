@@ -29,5 +29,15 @@ gcloud run deploy jarvis-rag --image asia-northeast3-docker.pkg.dev/jarvis-rag-5
   Fix: quote the value -> --update-env-vars "A=1,B=2". Service stayed up thanks to BM25 fallback.
 - 2026-10-17 Gemini embedding free daily quota hit at 900/2,000 papers -> resume after quota reset.
 
+- 2026-10-17 App request log was written to /tmp only -> lost on scale-to-zero.
+  Fix: also print one-line JSON to stdout (structured logging), searchable with gcloud logging read.
+
 ## Logs
+# Plain text logs (startup, HTTP access)
 gcloud run services logs read jarvis-rag --region asia-northeast3 --limit 20
+
+# Structured app logs (JSON on stdout -> Cloud Logging jsonPayload; kept even when instances scale to 0)
+gcloud logging read "resource.type=cloud_run_revision AND jsonPayload.message:ask" --limit 20 --format="value(timestamp,jsonPayload.message,jsonPayload.total_sec,jsonPayload.question)"
+
+# Errors only
+gcloud logging read "resource.type=cloud_run_revision AND jsonPayload.status=error" --limit 20
