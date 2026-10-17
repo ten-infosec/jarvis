@@ -107,7 +107,7 @@ class CloudRAG:
             vec_rank = [i for i in out["ids"][0] if i in self.docs]
         except Exception as e:
             # Embedding API down or over quota -> keep serving with keyword search only
-            print(f"[warn] vector search unavailable -> BM25 only ({type(e).__name__}: {str(e)[:60]})")
+            print(f"[warn] vector search unavailable -> BM25 only ({type(e).__name__}: {str(e)[:400]})")
 
         # --- BM25 (always used in hybrid mode, and as the fallback when vectors failed) ---
         bm_rank = []
