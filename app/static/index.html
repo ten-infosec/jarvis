@@ -93,7 +93,8 @@ function renderAnswer(div, data) {
     answerHtml = "<i>(search only)</i>";
   } else {
     // Escape first, then turn [1], [2] ... into links to that source's post
-    answerHtml = escapeHtml(data.answer).replace(/\[(\d+)\]/g, (match, n) => {
+        // **bold** -> <b>bold</b> (done after escaping, so only our own safe tag is added)
+    answerHtml = escapeHtml(data.answer).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\[(\d+)\]/g, (match, n) => {
       const src = data.sources.find(s => s.n === Number(n));
       const url = src ? safeUrl(src.url) : "";
       return url ? `<a class="cite" href="${escapeHtml(url)}" target="_blank" rel="noopener">[${n}]</a>` : match;

@@ -16,11 +16,17 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from app.rag import RAG
+ 
 
 
 app = FastAPI(title="Jarvis RAG (local)")
-rag = RAG()
+# JARVIS_MODE=cloud -> public arXiv + Gemini, anything else -> local private data + e5 + Ollama
+MODE = os.getenv("JARVIS_MODE", "local")
+if MODE == "cloud":
+    from app.rag_cloud import CloudRAG as Engine
+else:
+    from app.rag import RAG as Engine
+rag = Engine()
 STATIC_DIR = Path(__file__).parent / "static"
 
 # Korea Standard Time (UTC+9, no daylight saving). Containers default to UTC, so set it explicitly
