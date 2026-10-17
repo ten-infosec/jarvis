@@ -24,7 +24,9 @@ if MODE == "cloud":
 else:
     from app.rag import RAG as Engine
 
-app = FastAPI(title=f"Jarvis RAG ({MODE})")
+# In cloud mode, hide the auto-generated API docs (/docs, /openapi.json) from the public
+_docs_off = {"docs_url": None, "redoc_url": None, "openapi_url": None} if MODE == "cloud" else {}
+app = FastAPI(title=f"Jarvis RAG ({MODE})", **_docs_off)
 rag = Engine()
 STATIC_DIR = Path(__file__).parent / "static"
 KST = timezone(timedelta(hours=9))
@@ -50,6 +52,11 @@ def write_log(record):
 # Values can be changed with environment variables at deploy time
 RATE_PER_MIN = int(os.getenv("RATE_PER_MIN", "5"))
 DAILY_CAP = int(os.getenv("DAILY_CAP", "200"))
+# How many trusted proxies append to X-Forwarded-For AFTER the client (0 = direct *.run.app URL)
+# max(..., 0): a negative value from a typo cannot break the index math
+TRUSTED_PROXY_HOPS = max(int(os.getenv("TRUSTED_PROXY_HOPS", "0")), 0)
+# Upper bound on how many IPs are tracked in memory (protects the single instance from memory blow-up)
+MAX_TRACKED_IPS = 10_000
 # ip -> times of that IP's recent requests (deque = list that is fast to trim from the front)
 _recent = defaultdict(deque)
 _daily = {"date": None, "count": 0}
@@ -57,39 +64,52 @@ _limit_lock = threading.Lock()
 
 
 def client_ip(request: Request):
-    # Behind a cloud load balancer, the original address arrives in X-Forwarded-For
-    # (it can be faked by the client, which is why the daily cap below is the real safety net)
+    # Each proxy APPENDS to X-Forwarded-For, so a client can only forge entries on the LEFT.
+    # The entry added by Google's front end is the rightmost one (minus any extra trusted proxies).
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
-        return forwarded.split(",")[0].strip()
+        parts = [p.strip() for p in forwarded.split(",") if p.strip()]
+        # A header made only of commas/spaces gives an empty list -> fall through to the socket address
+        if parts:
+            index = max(len(parts) - 1 - TRUSTED_PROXY_HOPS, 0)
+            return parts[index]
     return request.client.host if request.client else "unknown"
 
 
 def check_limits(ip):
     now = time.time()
     with _limit_lock:
-        # 1) Per-IP: forget requests older than 60 seconds, then count what is left
-        times = _recent[ip]
-        while times and now - times[0] > 60:
-            times.popleft()
-        if len(times) >= RATE_PER_MIN:
-            raise HTTPException(status_code=429, detail=f"Too many requests: max {RATE_PER_MIN} per minute. Please wait.")
-
-        # 2) Whole service: reset the counter when the KST date changes
+        # 1) Whole service first: once the daily cap is hit, nothing else is stored in memory
         today = datetime.now(KST).date().isoformat()
         if _daily["date"] != today:
             _daily["date"], _daily["count"] = today, 0
         if _daily["count"] >= DAILY_CAP:
             raise HTTPException(status_code=429, detail="Daily limit reached for this demo. Please try again tomorrow.")
 
-        times.append(now)
+        # 2) Per-IP: look up WITHOUT creating an entry, forget requests older than 60 seconds
+        times = _recent.get(ip)
+        if times is not None:
+            while times and now - times[0] > 60:
+                times.popleft()
+            if len(times) >= RATE_PER_MIN:
+                raise HTTPException(status_code=429, detail=f"Too many requests: max {RATE_PER_MIN} per minute. Please wait.")
+
+        # 3) Keep the IP table bounded: drop idle IPs, and if still too big, drop the oldest ones
+        if times is None and len(_recent) >= MAX_TRACKED_IPS:
+            for old_ip in [k for k, v in _recent.items() if not v or now - v[-1] > 60]:
+                del _recent[old_ip]
+            while len(_recent) >= MAX_TRACKED_IPS:
+                del _recent[next(iter(_recent))]
+
+        _recent[ip].append(now)
         _daily["count"] += 1
 
 
 # ===== Request format (3, 4: size limits checked automatically by pydantic -> HTTP 422) =====
 class AskRequest(BaseModel):
     question: str = Field(min_length=2, max_length=500)
-    source: Optional[str] = None
+    # Only the known local sources are accepted (cloud ignores it); blocks huge strings in logs
+    source: Optional[Literal["saved", "my_post", "thread", "subtitle"]] = None
     mode: Literal["hybrid", "vector"] = "hybrid"
     retrieve_only: bool = False
     top_n: int = Field(default=5, ge=1, le=10)
@@ -117,6 +137,8 @@ def ask(req: AskRequest, request: Request):
 
     # Limits first, before any paid / quota-limited API call
     if MODE == "cloud":
+        # Number of X-Forwarded-For entries only (no IPs) -> lets us verify the header shape in Cloud Logging
+        record["xff_hops"] = len([p for p in request.headers.get("x-forwarded-for", "").split(",") if p.strip()])
         try:
             check_limits(client_ip(request))
         except HTTPException as e:
@@ -135,7 +157,9 @@ def ask(req: AskRequest, request: Request):
         record.update({"status": "error", "error": f"{type(e).__name__}: {e}",
                        "total_sec": round(time.time() - t0, 2)})
         write_log(record)
-        raise HTTPException(status_code=500, detail=f"{type(e).__name__}: {e}")
+        # Details stay in the log; the public cloud demo only sees a generic message
+        detail = "Internal error. Please try again later." if MODE == "cloud" else f"{type(e).__name__}: {e}"
+        raise HTTPException(status_code=500, detail=detail)
 
     record.update({
         "status": "ok", "search_query": query,
