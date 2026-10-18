@@ -78,13 +78,26 @@ Never present 🟠 as 🟢. When unsure, downgrade.
 | Human (태은) | approves commit/push/deploy | final say |
 Run agents sparingly (usage limits). Reviews must be independent of the worker.
 
-## 8. Current state (update at the end of each session)
+## 8. Current state (updated 2026-10-18 10:50 KST)
 - Retrieval: weighted RRF (vector 1.5 : BM25 1, k=60); MRR 0.340 → 0.497 on 15 queries (overfit risk).
-- 50-question eval set built; BM25-only: EN Hit@10 0.96, KO 0.20 → Korean query rewrite in progress.
-- Cloud: deployed; 900/2,000 papers indexed (Gemini daily quota). Next release 0.4 (rate-limit hardening).
-- Library: 767 books extracted (486 text, 281 scanned) → index Medicine first.
-- Pending commit: deploy.ps1, CI workflow (move ci-workflow-tests.yml → .github/workflows/tests.yml), docs.
+- 50-question eval set: BM25-only EN Hit@10 0.96, KO 0.20 → Korean glossary rewrite drafted in jarvis_drafts/overnight/quality (27 tests pass; BM25 KO Hit 0.88, ablated 0.64; hybrid eval + app/ integration pending).
+- Cloud: live, release 0.3. 900/2,000 papers indexed. Code for 0.4 (rate-limit hardening) committed, NOT deployed.
+- CI: .github/workflows/tests.yml committed (tests + secret/data guard). Check Actions tab result.
+- Library (local only, C:\jarvis_data\library): 767 books extracted (487 text, 288 scanned/failed);
+  BM25 index done (233,230 chunks); vector index RUNNING (~3.6 chunks/s, ETA ~2026-10-19 04:00, resumable);
+  quality.csv: 170 good / 317 check / 0 bad (thresholds strict, calibrate before OCR).
+- Agents: weekly usage limit hit; resets 2026-10-22 02:00 KST. Use agents sparingly; prefer Sonnet.
 
-## 9. Pointers
+## 9. Next steps (in order)
+1. 이지케어텍 application (deadline ~10/24–25, verify on posting): review drafts in career/ezcaretech.
+2. After 16:00 KST (Gemini quota reset): `python scripts\build_arxiv_index.py` (remaining 1,100 papers).
+3. Hybrid eval on 50 questions (+ Korean rewrite) → apply streaming.patch → tests → deploy 0.4 with
+   `.\scripts\deploy.ps1 -Version 0.4 -DryRun` then real; verify xff_hops, /docs 404, rate limit.
+4. Connect library search to the web UI (after vector index finishes).
+
+## 10. Pointers
 - Experiments: docs/experiments.md · Deploy & incidents: docs/deploy.md
-- Overnight drafts (not yet in repo): streaming, eval set, Korean rewrite, velog drafts, career docs.
+- Drafts NOT in repo: `C:\dev\jarvis_drafts\overnight\` — streaming/ (patch + NOTES), eval/ (50 questions, REPORT),
+  quality/ (Korean rewrite), career/ (ezcaretech, resume, interview, architecture), velog_bootcamp/ (19 posts),
+  blog/ (Jarvis post), study/ (medical imaging, python week 3, leukemia), security/PUBLIC_CHECKLIST.md,
+  partial: telegram/, ingest/, autocollect/ (stopped mid-way).
