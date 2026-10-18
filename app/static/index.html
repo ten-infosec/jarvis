@@ -20,6 +20,8 @@
   .sources div { margin:8px 0; }
   .cite { color:var(--accent); font-weight:bold; text-decoration:none; }
   .tag { font-size:11px; padding:1px 6px; border-radius:6px; background:#eee; color:#555; margin-left:4px; }
+  .tag.ocr { background:#fff1d6; color:#8a5a00; }
+  .tag.low { background:#fde2e2; color:#a33; }
   form { position:fixed; bottom:0; left:0; right:0; background:var(--card); border-top:1px solid var(--line); padding:10px 16px 14px; }
   .opts { max-width:820px; margin:0 auto 8px; display:flex; gap:16px; font-size:13px; color:var(--muted); align-items:center; }
   .row { max-width:820px; margin:0 auto; display:flex; gap:8px; }
@@ -41,6 +43,7 @@
         <option value="my_post">my_post</option>
         <option value="thread">thread</option>
         <option value="subtitle">subtitle</option>
+        <option value="library">books (도서)</option>
       </select>
     </label>
     <label><input type="checkbox" id="retrieveOnly"> search only (no LLM)</label>
@@ -74,6 +77,20 @@ function safeUrl(u) {
   return /^https:\/\//.test(u || "") ? u : "";
 }
 
+// Link to the ORIGINAL PDF at the right page (books only). Built here from strictly checked parts:
+// the server's "url" is never used for books, so a bad value can never become a link
+function libraryLink(s) {
+  const id = String(s.book_id ?? "");
+  const page = Number(s.page);
+  if (!/^[0-9a-f]{16}$/.test(id) || !Number.isInteger(page) || page < 1 || page > 100000) return "";
+  return `/library/pdf/${id}#page=${page}`;
+}
+
+// One link per source: an https link (posts, papers) or the original PDF page (books)
+function sourceUrl(s) {
+  return safeUrl(s.url) || libraryLink(s);
+}
+
 
 // ===== Chat bubbles =====
 // Create one message box, add it to the page, scroll to the bottom
@@ -96,27 +113,133 @@ function renderAnswer(div, data) {
         // **bold** -> <b>bold</b> (done after escaping, so only our own safe tag is added)
     answerHtml = escapeHtml(data.answer).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\[(\d+)\]/g, (match, n) => {
       const src = data.sources.find(s => s.n === Number(n));
-      const url = src ? safeUrl(src.url) : "";
+      const url = src ? sourceUrl(src) : "";
       return url ? `<a class="cite" href="${escapeHtml(url)}" target="_blank" rel="noopener">[${n}]</a>` : match;
     });
   }
 
-  const sourcesHtml = data.sources.map(s => {
-    const url = safeUrl(s.url);
+  div.innerHTML = answerHtml
+    + `<div class="sources">${sourcesHtml(data.sources)}</div>`
+    + `<div class="meta">search query: ${escapeHtml(data.search_query)}`
+    + ` · retrieve ${data.timing_sec.retrieve}s · generate ${data.timing_sec.generate}s</div>`;
+}
+
+// Numbered source list (shared by the final render and the live streaming render)
+function sourcesHtml(sources) {
+  return sources.map(s => {
+    const url = sourceUrl(s);
+    if (s.source === "library") {
+      const where = s.title ? `${escapeHtml(s.title)} · p.${escapeHtml(s.pages ?? s.page)}` : "library";
+      // ocr is the book's OCR confidence (a number), or absent for text books
+      const ocr = s.ocr !== undefined ? `<span class="tag ocr">OCR${s.ocr ? " " + escapeHtml(Math.round(s.ocr)) : ""}</span>` : "";
+      const low = s.ocr_low ? `<span class="tag low">낮은 신뢰</span>` : "";
+      const pdf = url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">PDF ${escapeHtml(s.page)}쪽 열기</a>` : "";
+      return `<div><b>[${s.n}]</b> ${where}<span class="tag">${escapeHtml(s.via)}</span>${ocr}${low} ${pdf}<br>`
+           + `<span style="color:#666">${escapeHtml(s.preview)}</span></div>`;
+    }
     const link = url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener">open</a>` : "";
     return `<div><b>[${s.n}]</b> ${escapeHtml(s.source)} · ${escapeHtml(String(s.date).slice(0, 10))}`
          + `<span class="tag">${escapeHtml(s.via)}</span> ${link}<br>`
          + `<span style="color:#666">${escapeHtml(s.preview)}</span></div>`;
   }).join("");
+}
 
-  div.innerHTML = answerHtml
-    + `<div class="sources">${sourcesHtml}</div>`
-    + `<div class="meta">search query: ${escapeHtml(data.search_query)}`
-    + ` · retrieve ${data.timing_sec.retrieve}s · generate ${data.timing_sec.generate}s</div>`;
+// While streaming: only the already-escaped text so far + sources.
+// **bold** and [n] links are added once at the end by renderAnswer(), on the escaped FULL text
+// (a "**" pair can be split across two chunks, so per-chunk formatting would be wrong)
+function renderPartial(div, escapedAnswer, sources) {
+  div.innerHTML = escapedAnswer
+    + `<div class="sources">${sourcesHtml(sources)}</div>`
+    + `<div class="meta">writing…</div>`;
+  window.scrollTo(0, document.body.scrollHeight);
 }
 
 
-// ===== Send a question to /ask =====
+// ===== Talking to the server =====
+// Error the server already handled (429, 422, error event...): retrying with /ask would only count the request twice
+class ServerError extends Error {}
+
+// Read the server's reason (e.g. "Too many requests...") and turn it into plain text
+async function httpErrorText(res) {
+  let detail = "";
+  try {
+    const body = await res.json();
+    detail = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail);
+  } catch (e) {}
+  return `HTTP ${res.status} ${detail}`;
+}
+
+// Old way: one request, the whole answer at once
+async function askPlain(payload) {
+  const res = await fetch("/ask", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new ServerError(await httpErrorText(res));
+  return res.json();
+}
+
+// New way: /ask/stream sends NDJSON lines (sources -> chunk x N -> done) and we draw each one as it arrives
+async function askStream(payload, botDiv, onFirstEvent) {
+  const res = await fetch("/ask/stream", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    // 404/405 = an older server without /ask/stream -> plain Error, so the caller falls back to /ask
+    if (res.status === 404 || res.status === 405) throw new Error(`HTTP ${res.status}`);
+    throw new ServerError(await httpErrorText(res));
+  }
+  // Very old browsers have no ReadableStream reader -> fall back to /ask
+  if (!res.body || !res.body.getReader) throw new Error("streaming not supported");
+
+  const reader = res.body.getReader();
+  // stream: true keeps a Korean character that was split between two network packets in one piece
+  const decoder = new TextDecoder();
+  let buffer = "", rawAnswer = "", escapedAnswer = "", meta = null, received = false;
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      // Every complete line is one event; the last piece may be half a line, so keep it for the next read
+      const lines = buffer.split("\n");
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        const ev = JSON.parse(line);
+        if (!received) { received = true; onFirstEvent(); }
+        if (ev.type === "sources") {
+          meta = ev;
+          renderPartial(botDiv, "", meta.sources);
+        } else if (ev.type === "chunk" && meta) {
+          rawAnswer += ev.text;
+          // Escape EVERY chunk before it touches innerHTML (model output is never trusted as HTML)
+          escapedAnswer += escapeHtml(ev.text);
+          renderPartial(botDiv, escapedAnswer, meta.sources);
+        } else if (ev.type === "error") {
+          throw new ServerError(ev.detail);
+        } else if (ev.type === "done" && meta) {
+          return {
+            question: meta.question, search_query: meta.search_query, sources: meta.sources,
+            answer: payload.retrieve_only ? null : rawAnswer, timing_sec: ev.timing_sec,
+          };
+        }
+      }
+    }
+  } catch (err) {
+    // Once something was shown, do not silently re-ask: the server already counted this request
+    if (err instanceof ServerError || !received) throw err;
+    throw new ServerError("연결이 중간에 끊겼어요");
+  }
+  if (received) throw new ServerError("답변이 중간에 끊겼어요");
+  throw new Error("empty stream");
+}
+
+
+// ===== Send a question (streaming first, /ask as the fallback) =====
 async function ask(question) {
   addMessage("user", escapeHtml(question));
   const botDiv = addMessage("bot", "생각 중… 0s");
@@ -127,27 +250,23 @@ async function ask(question) {
   }, 1000);
   sendBtn.disabled = true;
 
+  const payload = {
+    question: question,
+    source: sourceSel.value || null,
+    retrieve_only: retrieveOnlyBox.checked,
+  };
+
   try {
-    // Same request Swagger's "Execute" sent, but from JavaScript
-    const res = await fetch("/ask", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        question: question,
-        source: sourceSel.value || null,
-        retrieve_only: retrieveOnlyBox.checked,
-      }),
-    });
-       if (!res.ok) {
-      // Read the server's reason (e.g. "Too many requests...") and show it as plain text
-      let detail = "";
-      try {
-        const body = await res.json();
-        detail = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail);
-      } catch (e) {}
-      throw new Error(`HTTP ${res.status} ${detail}`);
+    let data;
+    try {
+      // The waiting timer stops as soon as the first event (sources) arrives
+      data = await askStream(payload, botDiv, () => clearInterval(timer));
+    } catch (err) {
+      if (err instanceof ServerError) throw err;
+      // Streaming was not possible and nothing was shown yet -> same question through the plain /ask
+      console.warn("stream failed, falling back to /ask:", err);
+      data = await askPlain(payload);
     }
-    const data = await res.json();
     clearInterval(timer);
     renderAnswer(botDiv, data);
   } catch (err) {

@@ -150,7 +150,24 @@ class CloudRAG:
         )
         return out.text
 
+    def generate_stream(self, question, hits):
+        # Same prompt and config as generate(), but yields the answer piece by piece as Gemini writes it
+        if not hits:
+            yield "관련 논문을 찾지 못했어요. (No matching papers found.)"
+            return
+        context = "\n\n".join(f"[{h['n']}] ({h['date']}) {h['text']}" for h in hits)
+        stream = self.client.models.generate_content_stream(
+            model=LLM_MODEL,
+            contents=f"[Sources]\n{context}\n\n[Question]\n{question}",
+            config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT, temperature=0.2),
+        )
+        for chunk in stream:
+            # Some chunks carry only metadata (e.g. the final usage info) and have no text -> skip them
+            if chunk.text:
+                yield chunk.text
+
 
 # → 공개 논문만 다루는 클라우드 엔진을 만들겠다. 질문을 Gemini로 임베딩해 벡터 검색하고, BM25 결과와 1.5 : 1로 합친다.
 #   임베딩 API가 한도 초과나 장애로 실패하면 멈추지 않고 BM25만으로 검색을 계속한다(우아한 성능 저하).
 #   답변은 Gemini가 출처 번호를 붙여, 질문과 같은 언어로 쓴다.
+#   generate_stream은 같은 설정으로 generate_content_stream을 불러, 답변을 조각조각 바로 넘겨준다.

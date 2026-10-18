@@ -143,8 +143,35 @@ class RAG:
         r.raise_for_status()
         return r.json()["message"]["content"]
 
+    def generate_stream(self, question, hits):
+        # Same prompt as generate(), but with "stream": True Ollama sends one JSON object per line (NDJSON)
+        context = "\n\n".join(f"[{h['n']}] ({h['source']}, {h['date']})\n{h['text']}" for h in hits)
+        # stream=True (requests): read the body as it arrives instead of waiting for the whole answer
+        with requests.post(OLLAMA_URL, json={
+            "model": LLM,
+            "messages": [{"role": "system", "content": SYSTEM_PROMPT},
+                         {"role": "user", "content": f"[자료]\n{context}\n\n[질문]\n{question}"}],
+            "stream": True,
+        }, timeout=600, stream=True) as r:
+            r.raise_for_status()
+            for line in r.iter_lines():
+                # Blank keep-alive lines carry nothing
+                if not line:
+                    continue
+                data = json.loads(line)
+                # Ollama reports problems that happen mid-answer as {"error": "..."} on its own line
+                if data.get("error"):
+                    raise RuntimeError(f"Ollama error: {data['error']}")
+                piece = data.get("message", {}).get("content", "")
+                if piece:
+                    yield piece
+                # The last line has "done": true (plus timing stats) and no more text
+                if data.get("done"):
+                    break
+
 
 # → 문서, 임베딩 모델, 벡터 DB를 서버가 켜질 때 한 번만 불러 두고,
 #   질문이 올 때마다 retrieve(검색)와 generate(LLM 답변)만 실행하겠다.
 #   BM25는 출처별로 처음 쓸 때 한 번 만들어 저장해 두고 재사용한다.
 #   LLM 지시문에 "관계없는 자료는 언급하지 마"를 추가해서 아까 [4] 같은 엉뚱한 요약을 줄여 본다.
+#   generate_stream은 Ollama에 stream=true로 요청해, 한 줄씩 오는 JSON에서 글자 조각만 꺼내 바로 넘겨준다.
