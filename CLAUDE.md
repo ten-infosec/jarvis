@@ -78,7 +78,12 @@ Never present 🟠 as 🟢. When unsure, downgrade.
 | Human (태은) | approves commit/push/deploy | final say |
 Run agents sparingly (usage limits). Reviews must be independent of the worker.
 
-## 8. Current state (updated 2026-10-18 10:50 KST)
+## 8. Current state (updated 2026-10-19 09:30 KST)
+- Branch feature/library-ui (commit 154850b, NOT pushed): library search in web UI (source "library"), original-PDF page links,
+  streaming answers (/ask/stream), OCR merge tool (scripts/library/merge_ocr.py, dry-run default). 82 tests pass.
+- Library OCR (local): background queue running; merge into the index only after the vector index finishes
+  (merge_ocr --dry-run, then --apply with the owner's go-ahead). Ops steps: docs/runbook.md.
+- Vector index of the library: ~72% at 08:34 on 10-19, ETA ~evening 10-19 (estimate, recheck with docs/runbook.md).
 - Retrieval: weighted RRF (vector 1.5 : BM25 1, k=60); MRR 0.340 → 0.497 on 15 queries (overfit risk).
 - 50-question eval set: BM25-only EN Hit@10 0.96, KO 0.20 → Korean glossary rewrite drafted in jarvis_drafts/overnight/quality (27 tests pass; BM25 KO Hit 0.88, ablated 0.64; hybrid eval + app/ integration pending).
 - Cloud: live, release 0.3. 900/2,000 papers indexed. Code for 0.4 (rate-limit hardening) committed, NOT deployed.
