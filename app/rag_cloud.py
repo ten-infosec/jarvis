@@ -15,6 +15,8 @@ from google import genai
 from google.genai import types
 from rank_bm25 import BM25Okapi
 
+from app.query_rewrite import Glossary, latin_doc_freq, rewrite_query
+
 
 # ===== Settings =====
 load_dotenv()
@@ -35,6 +37,8 @@ RRF_K = 3
 W_VEC = 1.5
 W_BM25 = 1.0
 CONTEXT_CHARS = 1500
+# Korean question -> English glossary terms for BM25 (the corpus is English). JARVIS_REWRITE=0 turns it off
+USE_REWRITE = os.getenv("JARVIS_REWRITE", "1") != "0"
 
 # Request words in Korean and English that say HOW to answer, not WHAT to find
 STOPWORDS = {
@@ -90,6 +94,10 @@ class CloudRAG:
         self.bm25 = BM25Okapi([tokenize(self.docs[i]["text"]) for i in self.ids])
         self.col = chromadb.PersistentClient(path=INDEX_DIR).get_collection(COLLECTION)
 
+        # Korean -> English glossary and the document frequency of English tokens (loaded once at startup)
+        self.glossary = Glossary.load()
+        self.doc_freq = latin_doc_freq(d["text"] for d in self.docs.values())
+
     def _embed_query(self, query):
         res = self.client.models.embed_content(
             model=EMBED_MODEL,
@@ -100,12 +108,21 @@ class CloudRAG:
         return (v / np.linalg.norm(v)).tolist()
 
     def retrieve(self, question, source=None, mode="hybrid", top_n=5):
-        query = clean_query(question)
+        # The rewrite changes only the BM25 side of a Korean question (English terms added, BM25 weight lowered);
+        # the embedding model is multilingual, so the vector side always sees the cleaned original question.
+        # Questions with a rare English term and all English questions pass through unchanged
+        if USE_REWRITE:
+            rw = rewrite_query(question, self.glossary, doc_freq=self.doc_freq)
+            vec_query, bm25_query, w_bm25 = rw.vector_query, rw.bm25_query, rw.w_bm25
+        else:
+            vec_query = bm25_query = clean_query(question)
+            w_bm25 = W_BM25
+        query = bm25_query
 
         # --- Vector search, with graceful degradation ---
         vec_rank = []
         try:
-            out = self.col.query(query_embeddings=[self._embed_query(query)], n_results=CANDIDATES)
+            out = self.col.query(query_embeddings=[self._embed_query(vec_query)], n_results=CANDIDATES)
             vec_rank = [i for i in out["ids"][0] if i in self.docs]
         except Exception as e:
             # Embedding API down or over quota -> keep serving with keyword search only
@@ -118,9 +135,9 @@ class CloudRAG:
             order = sorted(range(len(scores)), key=lambda i: -scores[i])
             bm_rank = [self.ids[i] for i in order[:CANDIDATES] if scores[i] > 0]
 
-        # --- Weighted RRF (same weights chosen in E3) ---
+        # --- Weighted RRF (W_VEC chosen in E3; the BM25 weight comes from the rewrite rule, 1.0 unless a Korean question) ---
         fused = defaultdict(float)
-        for ranked, w in [(vec_rank, W_VEC), (bm_rank, W_BM25)]:
+        for ranked, w in [(vec_rank, W_VEC), (bm_rank, w_bm25)]:
             for rank, d in enumerate(ranked, start=1):
                 fused[d] += w / (RRF_K + rank)
         final = sorted(fused, key=lambda d: -fused[d])[:top_n]

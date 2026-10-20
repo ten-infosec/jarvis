@@ -45,4 +45,12 @@ Questions and gold papers were AI-generated (eval set: 25 EN + 25 KO); cached ve
 - Held-out check, 20 new questions (10 EN + 10 KO, 20 random unused papers, paraphrased, single gold): k=3 Hit 1.00 / MRR 1.00 · interleave 1.00 / 0.80 · k=60 1.00 / 0.92 · vector-only 1.00 / 1.00 · BM25-only 0.85 / 0.69.
 - Decision: RRF_K 60 → 3 in app/rag_cloud.py (W_VEC stays 1.5). Local engine (app/rag.py) is unchanged: its 15-query plateau is W 1.25–2.
 - Caution: held-out questions were paraphrases written by the same agent and favor vector search; they do not contain the keyword-only failure type. Not tested on real user questions.
+
+## Korean glossary rewrite — 70 questions (50 natural + 20 keyword-style), 2026-10-20
+Keyword set: 10 EN single names (TotalSegmentator, MedSAM, DICOM ...) + 10 KO "term + 한국어"; gold = papers whose title/abstract contains the term (string match, so it favors BM25). The 50 natural questions favor vector search. Public arXiv only, full index (2,000 papers), RRF k=3, W_VEC 1.5.
+- Rewrite always on (glossary terms added to the BM25 query, BM25 weight 0.7/0.3 for Hangul queries): natural-KO MRR 0.933 → 0.980 but keyword-KO 0.850 → 0.633; ALL 0.927 → 0.913. Glossary words dilute a name query and the lowered weight hides it.
+- Guard: skip the rewrite when a Hangul question contains a rare English term (document frequency ≤ 40 of 2,000, fixed before the test): ALL MRR 0.935, natural-KO 0.953, keyword-KO 0.850. Hit@10 is 1.000 in every variant.
+- Integrated as app/query_rewrite.py (JARVIS_REWRITE=0 turns it off). End-to-end through CloudRAG.retrieve: off 0.927, on 0.935 (matches the offline numbers, 0 BM25 fallbacks).
+- Caution: gain is small (+0.008 ALL, +0.02 natural-KO) and within noise for 70 questions; the rare-term rule was checked on the same questions it was designed around. Not tested on real user questions.
+- RRF k on the same 70: k=3 ALL MRR 0.927 vs k=60 0.875 (supports the k=3 change).
 - arXiv index completed: 2,000/2,000 papers (2026-10-19 16:05).

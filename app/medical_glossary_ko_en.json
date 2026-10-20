@@ -1,0 +1,2366 @@
+{
+ "_meta": {
+  "version": 1,
+  "built": "2026-10-18",
+  "method": "Written from general medical/AI vocabulary grouped by specialty (AI methods, modalities, anatomy, diseases, clinical). Not derived from eval_questions.jsonl answers.",
+  "single_char_rule": "1-syllable keys match only as a whole word or word + particle"
+ },
+ "terms": {
+  "인공지능": {
+   "en": [
+    "artificial intelligence",
+    "AI"
+   ],
+   "cat": "ai_method"
+  },
+  "딥러닝": {
+   "en": [
+    "deep learning"
+   ],
+   "cat": "ai_method"
+  },
+  "심층학습": {
+   "en": [
+    "deep learning"
+   ],
+   "cat": "ai_method"
+  },
+  "머신러닝": {
+   "en": [
+    "machine learning"
+   ],
+   "cat": "ai_method"
+  },
+  "기계학습": {
+   "en": [
+    "machine learning"
+   ],
+   "cat": "ai_method"
+  },
+  "신경망": {
+   "en": [
+    "neural network"
+   ],
+   "cat": "ai_method"
+  },
+  "합성곱": {
+   "en": [
+    "convolutional"
+   ],
+   "cat": "ai_method"
+  },
+  "트랜스포머": {
+   "en": [
+    "transformer"
+   ],
+   "cat": "ai_method"
+  },
+  "거대언어모델": {
+   "en": [
+    "large language model",
+    "LLM"
+   ],
+   "cat": "ai_method"
+  },
+  "대규모언어모델": {
+   "en": [
+    "large language model",
+    "LLM"
+   ],
+   "cat": "ai_method"
+  },
+  "대형언어모델": {
+   "en": [
+    "large language model",
+    "LLM"
+   ],
+   "cat": "ai_method"
+  },
+  "언어모델": {
+   "en": [
+    "language model"
+   ],
+   "cat": "ai_method"
+  },
+  "생성형": {
+   "en": [
+    "generative"
+   ],
+   "cat": "ai_method"
+  },
+  "확산모델": {
+   "en": [
+    "diffusion model"
+   ],
+   "cat": "ai_method"
+  },
+  "강화학습": {
+   "en": [
+    "reinforcement learning"
+   ],
+   "cat": "ai_method"
+  },
+  "연합학습": {
+   "en": [
+    "federated learning"
+   ],
+   "cat": "ai_method"
+  },
+  "전이학습": {
+   "en": [
+    "transfer learning"
+   ],
+   "cat": "ai_method"
+  },
+  "자기지도학습": {
+   "en": [
+    "self-supervised learning"
+   ],
+   "cat": "ai_method"
+  },
+  "지도학습": {
+   "en": [
+    "supervised learning"
+   ],
+   "cat": "ai_method"
+  },
+  "비지도학습": {
+   "en": [
+    "unsupervised learning"
+   ],
+   "cat": "ai_method"
+  },
+  "분할": {
+   "en": [
+    "segmentation"
+   ],
+   "cat": "ai_method"
+  },
+  "세그멘테이션": {
+   "en": [
+    "segmentation"
+   ],
+   "cat": "ai_method"
+  },
+  "분류": {
+   "en": [
+    "classification"
+   ],
+   "cat": "ai_method"
+  },
+  "탐지": {
+   "en": [
+    "detection"
+   ],
+   "cat": "ai_method"
+  },
+  "검출": {
+   "en": [
+    "detection"
+   ],
+   "cat": "ai_method"
+  },
+  "예측": {
+   "en": [
+    "prediction"
+   ],
+   "cat": "ai_method"
+  },
+  "진단": {
+   "en": [
+    "diagnosis"
+   ],
+   "cat": "ai_method"
+  },
+  "예후": {
+   "en": [
+    "prognosis"
+   ],
+   "cat": "ai_method"
+  },
+  "판독": {
+   "en": [
+    "interpretation",
+    "reading"
+   ],
+   "cat": "ai_method"
+  },
+  "영상": {
+   "en": [
+    "imaging",
+    "image"
+   ],
+   "cat": "ai_method"
+  },
+  "이미지": {
+   "en": [
+    "image"
+   ],
+   "cat": "ai_method"
+  },
+  "데이터셋": {
+   "en": [
+    "dataset"
+   ],
+   "cat": "ai_method"
+  },
+  "벤치마크": {
+   "en": [
+    "benchmark"
+   ],
+   "cat": "ai_method"
+  },
+  "설명가능": {
+   "en": [
+    "explainable"
+   ],
+   "cat": "ai_method"
+  },
+  "해석가능": {
+   "en": [
+    "interpretable"
+   ],
+   "cat": "ai_method"
+  },
+  "불확실성": {
+   "en": [
+    "uncertainty"
+   ],
+   "cat": "ai_method"
+  },
+  "멀티모달": {
+   "en": [
+    "multimodal"
+   ],
+   "cat": "ai_method"
+  },
+  "다중모달": {
+   "en": [
+    "multimodal"
+   ],
+   "cat": "ai_method"
+  },
+  "파운데이션모델": {
+   "en": [
+    "foundation model"
+   ],
+   "cat": "ai_method"
+  },
+  "기반모델": {
+   "en": [
+    "foundation model"
+   ],
+   "cat": "ai_method"
+  },
+  "에이전트": {
+   "en": [
+    "agent"
+   ],
+   "cat": "ai_method"
+  },
+  "챗봇": {
+   "en": [
+    "chatbot"
+   ],
+   "cat": "ai_method"
+  },
+  "검색증강": {
+   "en": [
+    "retrieval augmented generation"
+   ],
+   "cat": "ai_method"
+  },
+  "환각": {
+   "en": [
+    "hallucination"
+   ],
+   "cat": "ai_method"
+  },
+  "아첨": {
+   "en": [
+    "sycophancy"
+   ],
+   "cat": "ai_method"
+  },
+  "편향": {
+   "en": [
+    "bias"
+   ],
+   "cat": "ai_method"
+  },
+  "공정성": {
+   "en": [
+    "fairness"
+   ],
+   "cat": "ai_method"
+  },
+  "개인정보": {
+   "en": [
+    "privacy"
+   ],
+   "cat": "ai_method"
+  },
+  "프라이버시": {
+   "en": [
+    "privacy"
+   ],
+   "cat": "ai_method"
+  },
+  "그래프신경망": {
+   "en": [
+    "graph neural network"
+   ],
+   "cat": "ai_method"
+  },
+  "지식그래프": {
+   "en": [
+    "knowledge graph"
+   ],
+   "cat": "ai_method"
+  },
+  "시계열": {
+   "en": [
+    "time series"
+   ],
+   "cat": "ai_method"
+  },
+  "자연어처리": {
+   "en": [
+    "natural language processing"
+   ],
+   "cat": "ai_method"
+  },
+  "음성인식": {
+   "en": [
+    "speech recognition"
+   ],
+   "cat": "ai_method"
+  },
+  "재구성": {
+   "en": [
+    "reconstruction"
+   ],
+   "cat": "ai_method"
+  },
+  "초해상도": {
+   "en": [
+    "super-resolution"
+   ],
+   "cat": "ai_method"
+  },
+  "노이즈제거": {
+   "en": [
+    "denoising"
+   ],
+   "cat": "ai_method"
+  },
+  "정합": {
+   "en": [
+    "registration"
+   ],
+   "cat": "ai_method"
+  },
+  "생존분석": {
+   "en": [
+    "survival analysis"
+   ],
+   "cat": "ai_method"
+  },
+  "인과추론": {
+   "en": [
+    "causal inference"
+   ],
+   "cat": "ai_method"
+  },
+  "임상시험": {
+   "en": [
+    "clinical trial"
+   ],
+   "cat": "ai_method"
+  },
+  "전자의무기록": {
+   "en": [
+    "electronic health records",
+    "EHR"
+   ],
+   "cat": "ai_method"
+  },
+  "전자건강기록": {
+   "en": [
+    "electronic health records",
+    "EHR"
+   ],
+   "cat": "ai_method"
+  },
+  "의무기록": {
+   "en": [
+    "medical records"
+   ],
+   "cat": "ai_method"
+  },
+  "임상노트": {
+   "en": [
+    "clinical notes"
+   ],
+   "cat": "ai_method"
+  },
+  "웨어러블": {
+   "en": [
+    "wearable"
+   ],
+   "cat": "ai_method"
+  },
+  "스마트워치": {
+   "en": [
+    "smartwatch"
+   ],
+   "cat": "ai_method"
+  },
+  "양자컴퓨팅": {
+   "en": [
+    "quantum computing"
+   ],
+   "cat": "ai_method"
+  },
+  "양자컴퓨터": {
+   "en": [
+    "quantum computer"
+   ],
+   "cat": "ai_method"
+  },
+  "양자": {
+   "en": [
+    "quantum"
+   ],
+   "cat": "ai_method"
+  },
+  "질의응답": {
+   "en": [
+    "question answering"
+   ],
+   "cat": "ai_method"
+  },
+  "요약": {
+   "en": [
+    "summarization"
+   ],
+   "cat": "ai_method"
+  },
+  "컴퓨터비전": {
+   "en": [
+    "computer vision"
+   ],
+   "cat": "ai_method"
+  },
+  "객체탐지": {
+   "en": [
+    "object detection"
+   ],
+   "cat": "ai_method"
+  },
+  "이상탐지": {
+   "en": [
+    "anomaly detection"
+   ],
+   "cat": "ai_method"
+  },
+  "사전학습": {
+   "en": [
+    "pretraining"
+   ],
+   "cat": "ai_method"
+  },
+  "미세조정": {
+   "en": [
+    "fine-tuning"
+   ],
+   "cat": "ai_method"
+  },
+  "파인튜닝": {
+   "en": [
+    "fine-tuning"
+   ],
+   "cat": "ai_method"
+  },
+  "프롬프트": {
+   "en": [
+    "prompt"
+   ],
+   "cat": "ai_method"
+  },
+  "일반화": {
+   "en": [
+    "generalization"
+   ],
+   "cat": "ai_method"
+  },
+  "도메인적응": {
+   "en": [
+    "domain adaptation"
+   ],
+   "cat": "ai_method"
+  },
+  "합성데이터": {
+   "en": [
+    "synthetic data"
+   ],
+   "cat": "ai_method"
+  },
+  "데이터증강": {
+   "en": [
+    "data augmentation"
+   ],
+   "cat": "ai_method"
+  },
+  "3차원": {
+   "en": [
+    "3D"
+   ],
+   "cat": "ai_method"
+  },
+  "삼차원": {
+   "en": [
+    "3D"
+   ],
+   "cat": "ai_method"
+  },
+  "로봇": {
+   "en": [
+    "robot"
+   ],
+   "cat": "ai_method"
+  },
+  "로봇수술": {
+   "en": [
+    "robotic surgery"
+   ],
+   "cat": "ai_method"
+  },
+  "엑스레이": {
+   "en": [
+    "x-ray",
+    "radiograph"
+   ],
+   "cat": "modality"
+  },
+  "흉부": {
+   "en": [
+    "chest"
+   ],
+   "cat": "modality"
+  },
+  "방사선사진": {
+   "en": [
+    "radiograph"
+   ],
+   "cat": "modality"
+  },
+  "영상의학": {
+   "en": [
+    "radiology"
+   ],
+   "cat": "modality"
+  },
+  "컴퓨터단층촬영": {
+   "en": [
+    "computed tomography",
+    "CT"
+   ],
+   "cat": "modality"
+  },
+  "자기공명영상": {
+   "en": [
+    "magnetic resonance imaging",
+    "MRI"
+   ],
+   "cat": "modality"
+  },
+  "초음파": {
+   "en": [
+    "ultrasound"
+   ],
+   "cat": "modality"
+  },
+  "심초음파": {
+   "en": [
+    "echocardiography"
+   ],
+   "cat": "modality"
+  },
+  "내시경": {
+   "en": [
+    "endoscopy"
+   ],
+   "cat": "modality"
+  },
+  "대장내시경": {
+   "en": [
+    "colonoscopy"
+   ],
+   "cat": "modality"
+  },
+  "위내시경": {
+   "en": [
+    "gastroscopy"
+   ],
+   "cat": "modality"
+  },
+  "병리": {
+   "en": [
+    "pathology"
+   ],
+   "cat": "modality"
+  },
+  "조직병리": {
+   "en": [
+    "histopathology"
+   ],
+   "cat": "modality"
+  },
+  "병리슬라이드": {
+   "en": [
+    "whole slide image"
+   ],
+   "cat": "modality"
+  },
+  "유방촬영": {
+   "en": [
+    "mammography"
+   ],
+   "cat": "modality"
+  },
+  "유방촬영술": {
+   "en": [
+    "mammography"
+   ],
+   "cat": "modality"
+  },
+  "안저": {
+   "en": [
+    "fundus"
+   ],
+   "cat": "modality"
+  },
+  "안저사진": {
+   "en": [
+    "fundus photograph"
+   ],
+   "cat": "modality"
+  },
+  "망막": {
+   "en": [
+    "retina",
+    "retinal"
+   ],
+   "cat": "modality"
+  },
+  "빛간섭단층촬영": {
+   "en": [
+    "optical coherence tomography",
+    "OCT"
+   ],
+   "cat": "modality"
+  },
+  "피부경": {
+   "en": [
+    "dermoscopy"
+   ],
+   "cat": "modality"
+  },
+  "양전자방출단층촬영": {
+   "en": [
+    "positron emission tomography",
+    "PET"
+   ],
+   "cat": "modality"
+  },
+  "핵의학": {
+   "en": [
+    "nuclear medicine"
+   ],
+   "cat": "modality"
+  },
+  "심전도": {
+   "en": [
+    "electrocardiogram",
+    "ECG"
+   ],
+   "cat": "modality"
+  },
+  "뇌파": {
+   "en": [
+    "electroencephalography",
+    "EEG"
+   ],
+   "cat": "modality"
+  },
+  "근전도": {
+   "en": [
+    "electromyography",
+    "EMG"
+   ],
+   "cat": "modality"
+  },
+  "광혈류측정": {
+   "en": [
+    "photoplethysmography",
+    "PPG"
+   ],
+   "cat": "modality"
+  },
+  "혈압": {
+   "en": [
+    "blood pressure"
+   ],
+   "cat": "modality"
+  },
+  "맥박": {
+   "en": [
+    "pulse"
+   ],
+   "cat": "modality"
+  },
+  "심박수": {
+   "en": [
+    "heart rate"
+   ],
+   "cat": "modality"
+  },
+  "심박변이도": {
+   "en": [
+    "heart rate variability"
+   ],
+   "cat": "modality"
+  },
+  "산소포화도": {
+   "en": [
+    "oxygen saturation",
+    "SpO2"
+   ],
+   "cat": "modality"
+  },
+  "혈액검사": {
+   "en": [
+    "blood test"
+   ],
+   "cat": "modality"
+  },
+  "유전체": {
+   "en": [
+    "genome",
+    "genomic"
+   ],
+   "cat": "modality"
+  },
+  "유전자": {
+   "en": [
+    "gene"
+   ],
+   "cat": "modality"
+  },
+  "단백질": {
+   "en": [
+    "protein"
+   ],
+   "cat": "modality"
+  },
+  "전사체": {
+   "en": [
+    "transcriptome"
+   ],
+   "cat": "modality"
+  },
+  "단일세포": {
+   "en": [
+    "single-cell"
+   ],
+   "cat": "modality"
+  },
+  "콘빔": {
+   "en": [
+    "cone-beam",
+    "CBCT"
+   ],
+   "cat": "modality"
+  },
+  "파노라마": {
+   "en": [
+    "panoramic radiograph"
+   ],
+   "cat": "modality"
+  },
+  "기능적자기공명": {
+   "en": [
+    "functional MRI"
+   ],
+   "cat": "modality"
+  },
+  "확산텐서": {
+   "en": [
+    "diffusion tensor imaging"
+   ],
+   "cat": "modality"
+  },
+  "청진": {
+   "en": [
+    "auscultation"
+   ],
+   "cat": "modality"
+  },
+  "기침소리": {
+   "en": [
+    "cough sound"
+   ],
+   "cat": "modality"
+  },
+  "음성": {
+   "en": [
+    "voice"
+   ],
+   "cat": "modality"
+  },
+  "뇌": {
+   "en": [
+    "brain"
+   ],
+   "cat": "anatomy"
+  },
+  "폐": {
+   "en": [
+    "lung",
+    "pulmonary"
+   ],
+   "cat": "anatomy"
+  },
+  "심장": {
+   "en": [
+    "heart",
+    "cardiac"
+   ],
+   "cat": "anatomy"
+  },
+  "간": {
+   "en": [
+    "liver",
+    "hepatic"
+   ],
+   "cat": "anatomy"
+  },
+  "신장": {
+   "en": [
+    "kidney",
+    "renal"
+   ],
+   "cat": "anatomy"
+  },
+  "콩팥": {
+   "en": [
+    "kidney"
+   ],
+   "cat": "anatomy"
+  },
+  "대장": {
+   "en": [
+    "colon",
+    "colorectal"
+   ],
+   "cat": "anatomy"
+  },
+  "소장": {
+   "en": [
+    "small intestine"
+   ],
+   "cat": "anatomy"
+  },
+  "췌장": {
+   "en": [
+    "pancreas"
+   ],
+   "cat": "anatomy"
+  },
+  "갑상선": {
+   "en": [
+    "thyroid"
+   ],
+   "cat": "anatomy"
+  },
+  "유방": {
+   "en": [
+    "breast"
+   ],
+   "cat": "anatomy"
+  },
+  "전립선": {
+   "en": [
+    "prostate"
+   ],
+   "cat": "anatomy"
+  },
+  "자궁": {
+   "en": [
+    "uterus"
+   ],
+   "cat": "anatomy"
+  },
+  "자궁경부": {
+   "en": [
+    "cervix"
+   ],
+   "cat": "anatomy"
+  },
+  "난소": {
+   "en": [
+    "ovary"
+   ],
+   "cat": "anatomy"
+  },
+  "피부": {
+   "en": [
+    "skin",
+    "dermatology"
+   ],
+   "cat": "anatomy"
+  },
+  "눈": {
+   "en": [
+    "eye"
+   ],
+   "cat": "anatomy"
+  },
+  "안구": {
+   "en": [
+    "eye"
+   ],
+   "cat": "anatomy"
+  },
+  "치아": {
+   "en": [
+    "tooth",
+    "dental"
+   ],
+   "cat": "anatomy"
+  },
+  "치과": {
+   "en": [
+    "dental",
+    "dentistry"
+   ],
+   "cat": "anatomy"
+  },
+  "구강": {
+   "en": [
+    "oral"
+   ],
+   "cat": "anatomy"
+  },
+  "척추": {
+   "en": [
+    "spine",
+    "spinal"
+   ],
+   "cat": "anatomy"
+  },
+  "요추": {
+   "en": [
+    "lumbar spine",
+    "lumbar"
+   ],
+   "cat": "anatomy"
+  },
+  "경추": {
+   "en": [
+    "cervical spine"
+   ],
+   "cat": "anatomy"
+  },
+  "흉추": {
+   "en": [
+    "thoracic spine"
+   ],
+   "cat": "anatomy"
+  },
+  "무릎": {
+   "en": [
+    "knee"
+   ],
+   "cat": "anatomy"
+  },
+  "고관절": {
+   "en": [
+    "hip"
+   ],
+   "cat": "anatomy"
+  },
+  "어깨": {
+   "en": [
+    "shoulder"
+   ],
+   "cat": "anatomy"
+  },
+  "뼈": {
+   "en": [
+    "bone"
+   ],
+   "cat": "anatomy"
+  },
+  "골격": {
+   "en": [
+    "skeletal"
+   ],
+   "cat": "anatomy"
+  },
+  "근육": {
+   "en": [
+    "muscle"
+   ],
+   "cat": "anatomy"
+  },
+  "혈관": {
+   "en": [
+    "blood vessel",
+    "vascular"
+   ],
+   "cat": "anatomy"
+  },
+  "관상동맥": {
+   "en": [
+    "coronary artery"
+   ],
+   "cat": "anatomy"
+  },
+  "대동맥": {
+   "en": [
+    "aorta"
+   ],
+   "cat": "anatomy"
+  },
+  "림프절": {
+   "en": [
+    "lymph node"
+   ],
+   "cat": "anatomy"
+  },
+  "골수": {
+   "en": [
+    "bone marrow"
+   ],
+   "cat": "anatomy"
+  },
+  "기관지": {
+   "en": [
+    "bronchial"
+   ],
+   "cat": "anatomy"
+  },
+  "식도": {
+   "en": [
+    "esophagus"
+   ],
+   "cat": "anatomy"
+  },
+  "담낭": {
+   "en": [
+    "gallbladder"
+   ],
+   "cat": "anatomy"
+  },
+  "방광": {
+   "en": [
+    "bladder"
+   ],
+   "cat": "anatomy"
+  },
+  "부신": {
+   "en": [
+    "adrenal"
+   ],
+   "cat": "anatomy"
+  },
+  "뇌하수체": {
+   "en": [
+    "pituitary"
+   ],
+   "cat": "anatomy"
+  },
+  "해마": {
+   "en": [
+    "hippocampus"
+   ],
+   "cat": "anatomy"
+  },
+  "손목": {
+   "en": [
+    "wrist"
+   ],
+   "cat": "anatomy"
+  },
+  "발목": {
+   "en": [
+    "ankle"
+   ],
+   "cat": "anatomy"
+  },
+  "좌심실": {
+   "en": [
+    "left ventricle",
+    "left ventricular"
+   ],
+   "cat": "anatomy"
+  },
+  "심실": {
+   "en": [
+    "ventricular"
+   ],
+   "cat": "anatomy"
+  },
+  "심방": {
+   "en": [
+    "atrial"
+   ],
+   "cat": "anatomy"
+  },
+  "판막": {
+   "en": [
+    "valve"
+   ],
+   "cat": "anatomy"
+  },
+  "시신경": {
+   "en": [
+    "optic nerve"
+   ],
+   "cat": "anatomy"
+  },
+  "각막": {
+   "en": [
+    "cornea"
+   ],
+   "cat": "anatomy"
+  },
+  "턱": {
+   "en": [
+    "jaw"
+   ],
+   "cat": "anatomy"
+  },
+  "두개골": {
+   "en": [
+    "skull"
+   ],
+   "cat": "anatomy"
+  },
+  "결핵": {
+   "en": [
+    "tuberculosis",
+    "TB"
+   ],
+   "cat": "disease"
+  },
+  "폐결핵": {
+   "en": [
+    "pulmonary tuberculosis",
+    "tuberculosis"
+   ],
+   "cat": "disease"
+  },
+  "폐렴": {
+   "en": [
+    "pneumonia"
+   ],
+   "cat": "disease"
+  },
+  "코로나": {
+   "en": [
+    "COVID-19"
+   ],
+   "cat": "disease"
+  },
+  "코로나19": {
+   "en": [
+    "COVID-19"
+   ],
+   "cat": "disease"
+  },
+  "독감": {
+   "en": [
+    "influenza"
+   ],
+   "cat": "disease"
+  },
+  "인플루엔자": {
+   "en": [
+    "influenza"
+   ],
+   "cat": "disease"
+  },
+  "패혈증": {
+   "en": [
+    "sepsis"
+   ],
+   "cat": "disease"
+  },
+  "말라리아": {
+   "en": [
+    "malaria"
+   ],
+   "cat": "disease"
+  },
+  "뎅기열": {
+   "en": [
+    "dengue"
+   ],
+   "cat": "disease"
+  },
+  "에이즈": {
+   "en": [
+    "HIV",
+    "AIDS"
+   ],
+   "cat": "disease"
+  },
+  "간염": {
+   "en": [
+    "hepatitis"
+   ],
+   "cat": "disease"
+  },
+  "감염": {
+   "en": [
+    "infection"
+   ],
+   "cat": "disease"
+  },
+  "항생제내성": {
+   "en": [
+    "antimicrobial resistance"
+   ],
+   "cat": "disease"
+  },
+  "항생제": {
+   "en": [
+    "antibiotic"
+   ],
+   "cat": "disease"
+  },
+  "감염병": {
+   "en": [
+    "infectious disease"
+   ],
+   "cat": "disease"
+  },
+  "전염병": {
+   "en": [
+    "epidemic",
+    "pandemic"
+   ],
+   "cat": "disease"
+  },
+  "암": {
+   "en": [
+    "cancer"
+   ],
+   "cat": "disease"
+  },
+  "종양": {
+   "en": [
+    "tumor"
+   ],
+   "cat": "disease"
+  },
+  "악성": {
+   "en": [
+    "malignant"
+   ],
+   "cat": "disease"
+  },
+  "양성종양": {
+   "en": [
+    "benign tumor"
+   ],
+   "cat": "disease"
+  },
+  "폐암": {
+   "en": [
+    "lung cancer"
+   ],
+   "cat": "disease"
+  },
+  "유방암": {
+   "en": [
+    "breast cancer"
+   ],
+   "cat": "disease"
+  },
+  "대장암": {
+   "en": [
+    "colorectal cancer"
+   ],
+   "cat": "disease"
+  },
+  "위암": {
+   "en": [
+    "gastric cancer"
+   ],
+   "cat": "disease"
+  },
+  "간암": {
+   "en": [
+    "liver cancer",
+    "hepatocellular carcinoma"
+   ],
+   "cat": "disease"
+  },
+  "췌장암": {
+   "en": [
+    "pancreatic cancer"
+   ],
+   "cat": "disease"
+  },
+  "전립선암": {
+   "en": [
+    "prostate cancer"
+   ],
+   "cat": "disease"
+  },
+  "갑상선암": {
+   "en": [
+    "thyroid cancer"
+   ],
+   "cat": "disease"
+  },
+  "피부암": {
+   "en": [
+    "skin cancer"
+   ],
+   "cat": "disease"
+  },
+  "흑색종": {
+   "en": [
+    "melanoma"
+   ],
+   "cat": "disease"
+  },
+  "자궁경부암": {
+   "en": [
+    "cervical cancer"
+   ],
+   "cat": "disease"
+  },
+  "난소암": {
+   "en": [
+    "ovarian cancer"
+   ],
+   "cat": "disease"
+  },
+  "뇌종양": {
+   "en": [
+    "brain tumor"
+   ],
+   "cat": "disease"
+  },
+  "교모세포종": {
+   "en": [
+    "glioblastoma"
+   ],
+   "cat": "disease"
+  },
+  "신경교종": {
+   "en": [
+    "glioma"
+   ],
+   "cat": "disease"
+  },
+  "백혈병": {
+   "en": [
+    "leukemia"
+   ],
+   "cat": "disease"
+  },
+  "림프종": {
+   "en": [
+    "lymphoma"
+   ],
+   "cat": "disease"
+  },
+  "전이": {
+   "en": [
+    "metastasis"
+   ],
+   "cat": "disease"
+  },
+  "용종": {
+   "en": [
+    "polyp"
+   ],
+   "cat": "disease"
+  },
+  "결절": {
+   "en": [
+    "nodule"
+   ],
+   "cat": "disease"
+  },
+  "폐결절": {
+   "en": [
+    "pulmonary nodule",
+    "lung nodule"
+   ],
+   "cat": "disease"
+  },
+  "갑상선결절": {
+   "en": [
+    "thyroid nodule"
+   ],
+   "cat": "disease"
+  },
+  "병변": {
+   "en": [
+    "lesion"
+   ],
+   "cat": "disease"
+  },
+  "당뇨": {
+   "en": [
+    "diabetes"
+   ],
+   "cat": "disease"
+  },
+  "당뇨병": {
+   "en": [
+    "diabetes"
+   ],
+   "cat": "disease"
+  },
+  "당뇨망막병증": {
+   "en": [
+    "diabetic retinopathy"
+   ],
+   "cat": "disease"
+  },
+  "당뇨병성망막병증": {
+   "en": [
+    "diabetic retinopathy"
+   ],
+   "cat": "disease"
+  },
+  "고혈압": {
+   "en": [
+    "hypertension"
+   ],
+   "cat": "disease"
+  },
+  "고지혈증": {
+   "en": [
+    "hyperlipidemia"
+   ],
+   "cat": "disease"
+  },
+  "비만": {
+   "en": [
+    "obesity"
+   ],
+   "cat": "disease"
+  },
+  "대사증후군": {
+   "en": [
+    "metabolic syndrome"
+   ],
+   "cat": "disease"
+  },
+  "심부전": {
+   "en": [
+    "heart failure"
+   ],
+   "cat": "disease"
+  },
+  "심근경색": {
+   "en": [
+    "myocardial infarction",
+    "heart attack"
+   ],
+   "cat": "disease"
+  },
+  "심장마비": {
+   "en": [
+    "cardiac arrest",
+    "heart attack"
+   ],
+   "cat": "disease"
+  },
+  "심정지": {
+   "en": [
+    "cardiac arrest"
+   ],
+   "cat": "disease"
+  },
+  "협심증": {
+   "en": [
+    "angina"
+   ],
+   "cat": "disease"
+  },
+  "부정맥": {
+   "en": [
+    "arrhythmia"
+   ],
+   "cat": "disease"
+  },
+  "심방세동": {
+   "en": [
+    "atrial fibrillation",
+    "AF"
+   ],
+   "cat": "disease"
+  },
+  "관상동맥질환": {
+   "en": [
+    "coronary artery disease"
+   ],
+   "cat": "disease"
+  },
+  "심혈관": {
+   "en": [
+    "cardiovascular"
+   ],
+   "cat": "disease"
+  },
+  "심혈관질환": {
+   "en": [
+    "cardiovascular disease"
+   ],
+   "cat": "disease"
+  },
+  "뇌졸중": {
+   "en": [
+    "stroke"
+   ],
+   "cat": "disease"
+  },
+  "뇌경색": {
+   "en": [
+    "ischemic stroke"
+   ],
+   "cat": "disease"
+  },
+  "뇌출혈": {
+   "en": [
+    "intracerebral hemorrhage",
+    "hemorrhage"
+   ],
+   "cat": "disease"
+  },
+  "동맥경화": {
+   "en": [
+    "atherosclerosis"
+   ],
+   "cat": "disease"
+  },
+  "박출률": {
+   "en": [
+    "ejection fraction"
+   ],
+   "cat": "disease"
+  },
+  "박출계수": {
+   "en": [
+    "ejection fraction"
+   ],
+   "cat": "disease"
+  },
+  "녹내장": {
+   "en": [
+    "glaucoma"
+   ],
+   "cat": "disease"
+  },
+  "백내장": {
+   "en": [
+    "cataract"
+   ],
+   "cat": "disease"
+  },
+  "황반변성": {
+   "en": [
+    "macular degeneration"
+   ],
+   "cat": "disease"
+  },
+  "근시": {
+   "en": [
+    "myopia"
+   ],
+   "cat": "disease"
+  },
+  "치매": {
+   "en": [
+    "dementia"
+   ],
+   "cat": "disease"
+  },
+  "알츠하이머": {
+   "en": [
+    "Alzheimer"
+   ],
+   "cat": "disease"
+  },
+  "파킨슨": {
+   "en": [
+    "Parkinson"
+   ],
+   "cat": "disease"
+  },
+  "파킨슨병": {
+   "en": [
+    "Parkinson disease"
+   ],
+   "cat": "disease"
+  },
+  "뇌전증": {
+   "en": [
+    "epilepsy"
+   ],
+   "cat": "disease"
+  },
+  "간질": {
+   "en": [
+    "epilepsy"
+   ],
+   "cat": "disease"
+  },
+  "발작": {
+   "en": [
+    "seizure"
+   ],
+   "cat": "disease"
+  },
+  "다발성경화증": {
+   "en": [
+    "multiple sclerosis"
+   ],
+   "cat": "disease"
+  },
+  "편두통": {
+   "en": [
+    "migraine"
+   ],
+   "cat": "disease"
+  },
+  "뇌진탕": {
+   "en": [
+    "concussion"
+   ],
+   "cat": "disease"
+  },
+  "뇌손상": {
+   "en": [
+    "brain injury"
+   ],
+   "cat": "disease"
+  },
+  "자폐": {
+   "en": [
+    "autism"
+   ],
+   "cat": "disease"
+  },
+  "자폐증": {
+   "en": [
+    "autism"
+   ],
+   "cat": "disease"
+  },
+  "자폐스펙트럼": {
+   "en": [
+    "autism spectrum disorder"
+   ],
+   "cat": "disease"
+  },
+  "주의력결핍": {
+   "en": [
+    "ADHD",
+    "attention deficit"
+   ],
+   "cat": "disease"
+  },
+  "우울증": {
+   "en": [
+    "depression"
+   ],
+   "cat": "disease"
+  },
+  "우울": {
+   "en": [
+    "depression"
+   ],
+   "cat": "disease"
+  },
+  "불안": {
+   "en": [
+    "anxiety"
+   ],
+   "cat": "disease"
+  },
+  "조현병": {
+   "en": [
+    "schizophrenia"
+   ],
+   "cat": "disease"
+  },
+  "양극성": {
+   "en": [
+    "bipolar disorder"
+   ],
+   "cat": "disease"
+  },
+  "자살": {
+   "en": [
+    "suicide"
+   ],
+   "cat": "disease"
+  },
+  "정신건강": {
+   "en": [
+    "mental health"
+   ],
+   "cat": "disease"
+  },
+  "정신질환": {
+   "en": [
+    "mental disorder"
+   ],
+   "cat": "disease"
+  },
+  "외상후스트레스": {
+   "en": [
+    "PTSD"
+   ],
+   "cat": "disease"
+  },
+  "불면증": {
+   "en": [
+    "insomnia"
+   ],
+   "cat": "disease"
+  },
+  "수면": {
+   "en": [
+    "sleep"
+   ],
+   "cat": "disease"
+  },
+  "수면무호흡": {
+   "en": [
+    "sleep apnea"
+   ],
+   "cat": "disease"
+  },
+  "수면단계": {
+   "en": [
+    "sleep staging"
+   ],
+   "cat": "disease"
+  },
+  "천식": {
+   "en": [
+    "asthma"
+   ],
+   "cat": "disease"
+  },
+  "만성폐쇄성폐질환": {
+   "en": [
+    "COPD",
+    "chronic obstructive pulmonary disease"
+   ],
+   "cat": "disease"
+  },
+  "폐섬유화": {
+   "en": [
+    "pulmonary fibrosis"
+   ],
+   "cat": "disease"
+  },
+  "기흉": {
+   "en": [
+    "pneumothorax"
+   ],
+   "cat": "disease"
+  },
+  "흉수": {
+   "en": [
+    "pleural effusion"
+   ],
+   "cat": "disease"
+  },
+  "급성신손상": {
+   "en": [
+    "acute kidney injury"
+   ],
+   "cat": "disease"
+  },
+  "만성신장병": {
+   "en": [
+    "chronic kidney disease"
+   ],
+   "cat": "disease"
+  },
+  "간경변": {
+   "en": [
+    "cirrhosis"
+   ],
+   "cat": "disease"
+  },
+  "지방간": {
+   "en": [
+    "fatty liver"
+   ],
+   "cat": "disease"
+  },
+  "염증성장질환": {
+   "en": [
+    "inflammatory bowel disease"
+   ],
+   "cat": "disease"
+  },
+  "크론병": {
+   "en": [
+    "Crohn"
+   ],
+   "cat": "disease"
+  },
+  "골다공증": {
+   "en": [
+    "osteoporosis"
+   ],
+   "cat": "disease"
+  },
+  "골절": {
+   "en": [
+    "fracture"
+   ],
+   "cat": "disease"
+  },
+  "관절염": {
+   "en": [
+    "arthritis"
+   ],
+   "cat": "disease"
+  },
+  "류마티스": {
+   "en": [
+    "rheumatoid"
+   ],
+   "cat": "disease"
+  },
+  "골관절염": {
+   "en": [
+    "osteoarthritis"
+   ],
+   "cat": "disease"
+  },
+  "디스크": {
+   "en": [
+    "intervertebral disc",
+    "disc herniation"
+   ],
+   "cat": "disease"
+  },
+  "척추측만증": {
+   "en": [
+    "scoliosis"
+   ],
+   "cat": "disease"
+  },
+  "충치": {
+   "en": [
+    "dental caries"
+   ],
+   "cat": "disease"
+  },
+  "치주염": {
+   "en": [
+    "periodontitis"
+   ],
+   "cat": "disease"
+  },
+  "잇몸": {
+   "en": [
+    "periodontal"
+   ],
+   "cat": "disease"
+  },
+  "아토피": {
+   "en": [
+    "atopic dermatitis"
+   ],
+   "cat": "disease"
+  },
+  "건선": {
+   "en": [
+    "psoriasis"
+   ],
+   "cat": "disease"
+  },
+  "빈혈": {
+   "en": [
+    "anemia"
+   ],
+   "cat": "disease"
+  },
+  "희귀질환": {
+   "en": [
+    "rare disease"
+   ],
+   "cat": "disease"
+  },
+  "유전질환": {
+   "en": [
+    "genetic disorder"
+   ],
+   "cat": "disease"
+  },
+  "섬망": {
+   "en": [
+    "delirium"
+   ],
+   "cat": "disease"
+  },
+  "노쇠": {
+   "en": [
+    "frailty"
+   ],
+   "cat": "disease"
+  },
+  "낙상": {
+   "en": [
+    "fall"
+   ],
+   "cat": "disease"
+  },
+  "통증": {
+   "en": [
+    "pain"
+   ],
+   "cat": "disease"
+  },
+  "염증": {
+   "en": [
+    "inflammation"
+   ],
+   "cat": "disease"
+  },
+  "임신": {
+   "en": [
+    "pregnancy"
+   ],
+   "cat": "clinical"
+  },
+  "조산": {
+   "en": [
+    "preterm birth"
+   ],
+   "cat": "clinical"
+  },
+  "신생아": {
+   "en": [
+    "neonatal",
+    "newborn"
+   ],
+   "cat": "clinical"
+  },
+  "태아": {
+   "en": [
+    "fetal"
+   ],
+   "cat": "clinical"
+  },
+  "소아": {
+   "en": [
+    "pediatric"
+   ],
+   "cat": "clinical"
+  },
+  "어린이": {
+   "en": [
+    "children"
+   ],
+   "cat": "clinical"
+  },
+  "노인": {
+   "en": [
+    "elderly",
+    "older adults"
+   ],
+   "cat": "clinical"
+  },
+  "중환자": {
+   "en": [
+    "critically ill"
+   ],
+   "cat": "clinical"
+  },
+  "중환자실": {
+   "en": [
+    "intensive care unit",
+    "ICU"
+   ],
+   "cat": "clinical"
+  },
+  "응급실": {
+   "en": [
+    "emergency department"
+   ],
+   "cat": "clinical"
+  },
+  "응급": {
+   "en": [
+    "emergency"
+   ],
+   "cat": "clinical"
+  },
+  "수술": {
+   "en": [
+    "surgery",
+    "surgical"
+   ],
+   "cat": "clinical"
+  },
+  "마취": {
+   "en": [
+    "anesthesia"
+   ],
+   "cat": "clinical"
+  },
+  "재입원": {
+   "en": [
+    "readmission"
+   ],
+   "cat": "clinical"
+  },
+  "사망률": {
+   "en": [
+    "mortality"
+   ],
+   "cat": "clinical"
+  },
+  "사망": {
+   "en": [
+    "mortality"
+   ],
+   "cat": "clinical"
+  },
+  "약물": {
+   "en": [
+    "drug"
+   ],
+   "cat": "clinical"
+  },
+  "신약개발": {
+   "en": [
+    "drug discovery"
+   ],
+   "cat": "clinical"
+  },
+  "약물상호작용": {
+   "en": [
+    "drug-drug interaction"
+   ],
+   "cat": "clinical"
+  },
+  "부작용": {
+   "en": [
+    "adverse event",
+    "side effect"
+   ],
+   "cat": "clinical"
+  },
+  "처방": {
+   "en": [
+    "prescription"
+   ],
+   "cat": "clinical"
+  },
+  "투약": {
+   "en": [
+    "medication"
+   ],
+   "cat": "clinical"
+  },
+  "백신": {
+   "en": [
+    "vaccine"
+   ],
+   "cat": "clinical"
+  },
+  "유전변이": {
+   "en": [
+    "genetic variant",
+    "mutation"
+   ],
+   "cat": "clinical"
+  },
+  "돌연변이": {
+   "en": [
+    "mutation"
+   ],
+   "cat": "clinical"
+  },
+  "바이오마커": {
+   "en": [
+    "biomarker"
+   ],
+   "cat": "clinical"
+  },
+  "혈당": {
+   "en": [
+    "blood glucose"
+   ],
+   "cat": "clinical"
+  },
+  "인슐린": {
+   "en": [
+    "insulin"
+   ],
+   "cat": "clinical"
+  },
+  "콜레스테롤": {
+   "en": [
+    "cholesterol"
+   ],
+   "cat": "clinical"
+  },
+  "면역": {
+   "en": [
+    "immune"
+   ],
+   "cat": "clinical"
+  },
+  "면역치료": {
+   "en": [
+    "immunotherapy"
+   ],
+   "cat": "clinical"
+  },
+  "항암": {
+   "en": [
+    "chemotherapy"
+   ],
+   "cat": "clinical"
+  },
+  "항암치료": {
+   "en": [
+    "chemotherapy"
+   ],
+   "cat": "clinical"
+  },
+  "방사선치료": {
+   "en": [
+    "radiotherapy",
+    "radiation therapy"
+   ],
+   "cat": "clinical"
+  },
+  "영양": {
+   "en": [
+    "nutrition"
+   ],
+   "cat": "clinical"
+  },
+  "운동": {
+   "en": [
+    "exercise",
+    "physical activity"
+   ],
+   "cat": "clinical"
+  },
+  "재활": {
+   "en": [
+    "rehabilitation"
+   ],
+   "cat": "clinical"
+  },
+  "보행": {
+   "en": [
+    "gait"
+   ],
+   "cat": "clinical"
+  },
+  "병원": {
+   "en": [
+    "hospital"
+   ],
+   "cat": "clinical"
+  },
+  "의사": {
+   "en": [
+    "physician",
+    "clinician"
+   ],
+   "cat": "clinical"
+  },
+  "간호": {
+   "en": [
+    "nursing"
+   ],
+   "cat": "clinical"
+  },
+  "간호사": {
+   "en": [
+    "nurse"
+   ],
+   "cat": "clinical"
+  },
+  "환자": {
+   "en": [
+    "patient"
+   ],
+   "cat": "clinical"
+  },
+  "의료": {
+   "en": [
+    "medical",
+    "healthcare"
+   ],
+   "cat": "clinical"
+  },
+  "헬스케어": {
+   "en": [
+    "healthcare"
+   ],
+   "cat": "clinical"
+  },
+  "임상": {
+   "en": [
+    "clinical"
+   ],
+   "cat": "clinical"
+  },
+  "원격의료": {
+   "en": [
+    "telemedicine"
+   ],
+   "cat": "clinical"
+  },
+  "질병코드": {
+   "en": [
+    "ICD",
+    "diagnosis codes"
+   ],
+   "cat": "clinical"
+  },
+  "의료코딩": {
+   "en": [
+    "medical coding"
+   ],
+   "cat": "clinical"
+  },
+  "의학": {
+   "en": [
+    "medicine"
+   ],
+   "cat": "clinical"
+  },
+  "공중보건": {
+   "en": [
+    "public health"
+   ],
+   "cat": "clinical"
+  },
+  "역학": {
+   "en": [
+    "epidemiology"
+   ],
+   "cat": "clinical"
+  },
+  "선별검사": {
+   "en": [
+    "screening"
+   ],
+   "cat": "clinical"
+  },
+  "검진": {
+   "en": [
+    "screening"
+   ],
+   "cat": "clinical"
+  },
+  "조기진단": {
+   "en": [
+    "early diagnosis"
+   ],
+   "cat": "clinical"
+  },
+  "조기발견": {
+   "en": [
+    "early detection"
+   ],
+   "cat": "clinical"
+  },
+  "치료": {
+   "en": [
+    "treatment"
+   ],
+   "cat": "clinical"
+  },
+  "위험도": {
+   "en": [
+    "risk"
+   ],
+   "cat": "clinical"
+  },
+  "위험": {
+   "en": [
+    "risk"
+   ],
+   "cat": "clinical"
+  },
+  "중증도": {
+   "en": [
+    "severity"
+   ],
+   "cat": "clinical"
+  },
+  "진행": {
+   "en": [
+    "progression"
+   ],
+   "cat": "clinical"
+  },
+  "수의": {
+   "en": [
+    "veterinary"
+   ],
+   "cat": "clinical"
+  },
+  "수의학": {
+   "en": [
+    "veterinary medicine"
+   ],
+   "cat": "clinical"
+  },
+  "반려동물": {
+   "en": [
+    "companion animal",
+    "pet"
+   ],
+   "cat": "clinical"
+  },
+  "한의학": {
+   "en": [
+    "traditional medicine"
+   ],
+   "cat": "clinical"
+  },
+  "정밀의료": {
+   "en": [
+    "precision medicine"
+   ],
+   "cat": "clinical"
+  },
+  "유전체분석": {
+   "en": [
+    "genomic analysis"
+   ],
+   "cat": "clinical"
+  }
+ }
+}
