@@ -36,3 +36,13 @@ Corpus: 28,796 documents (corpus.jsonl) → 36,767 chunks (400 chars, overlap 50
 - E6: Hit 0.733 → 0.800 but MRR 0.497 → 0.476 and ~55 s/query → keep as optional --rerank, not default
 - LLM (qwen2.5:3b): citations OK, but mis-summarized an irrelevant source and added an ungrounded closing sentence → compare a larger LLM in the cloud stage
 - Caution: E1–E6 all tuned on the same 15 queries → build a larger natural-question eval set (50+) before further tuning
+
+## Cloud engine (arXiv, Gemini embeddings) — 50-question set, 2026-10-19/20
+Questions and gold papers were AI-generated (eval set: 25 EN + 25 KO); cached vectors, 49 usable (1 embedding failed). KO queries use the glossary rewrite.
+- Baseline weighted RRF (W_VEC 1.5, k=60): EN Hit@10 0.71 vs BM25-only 0.96. Cause: vector rank 7–10 (1.5/70) outscores BM25 rank 1 (1/61), so keyword-only hits drop below rank 10.
+- W_VEC sweep (EN Hit@10): 0.5 → 0.96, 1.0 → 0.96, 1.1 → 0.75, 1.5 → 0.71. A cliff just above 1.0, so weight tuning is fragile; at k=5 (app default sources) W_VEC 1.0 did not help.
+- Fusion variants at k=10 (ALL Hit / MRR): rrf W1.5 k=60 0.82 / 0.74 · interleave 1.00 / 0.84 · rrf W1.5 k=3 0.96 / 0.83 · pinning BM25 top-1/top-2 hurt MRR (0.66 / 0.63).
+- Held-out check, 20 new questions (10 EN + 10 KO, 20 random unused papers, paraphrased, single gold): k=3 Hit 1.00 / MRR 1.00 · interleave 1.00 / 0.80 · k=60 1.00 / 0.92 · vector-only 1.00 / 1.00 · BM25-only 0.85 / 0.69.
+- Decision: RRF_K 60 → 3 in app/rag_cloud.py (W_VEC stays 1.5). Local engine (app/rag.py) is unchanged: its 15-query plateau is W 1.25–2.
+- Caution: held-out questions were paraphrases written by the same agent and favor vector search; they do not contain the keyword-only failure type. Not tested on real user questions.
+- arXiv index completed: 2,000/2,000 papers (2026-10-19 16:05).

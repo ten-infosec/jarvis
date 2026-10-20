@@ -29,7 +29,9 @@ LLM_MODEL = os.getenv("GEMINI_LLM_MODEL", "gemini-flash-latest")
 # Must match the index (768 dimensions)
 DIM = 768
 CANDIDATES = 50
-RRF_K = 60
+# Small k makes the top ranks of each list dominate, so a keyword-only hit at rank 1 is not pushed out by vector hits
+# (50-question eval, English Hit@10: 0.71 at k=60 -> 0.96 at k=3)
+RRF_K = 3
 W_VEC = 1.5
 W_BM25 = 1.0
 CONTEXT_CHARS = 1500
