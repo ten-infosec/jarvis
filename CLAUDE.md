@@ -16,6 +16,7 @@ app/rag.py         local engine (e5 + Chroma + BM25 + Ollama)
 app/rag_cloud.py   cloud engine (Gemini embed/LLM + Chroma + BM25, BM25 fallback)
 app/static/        web chat (escapeHtml/safeUrl — keep XSS protection)
 scripts/           extract_*, build_*_index, eval_*, deploy.ps1, extract_library.py
+scripts/security_feed/  public AI-security news: collect.py + sources.json + run_daily.ps1 → morning_paper.py --edition security
 tests/             pytest with fake engines (no keys, no network)
 docs/              experiments.md, deploy.md (incidents), runbook (planned)
 ```
@@ -83,20 +84,21 @@ Run agents sparingly (usage limits). Reviews must be independent of the worker.
   streaming answers (/ask/stream), OCR merge tool (scripts/library/merge_ocr.py, dry-run default). 82 tests pass.
 - Library OCR (local): background queue running; merge into the index only after the vector index finishes
   (merge_ocr --dry-run, then --apply with the owner's go-ahead). Ops steps: docs/runbook.md.
-- Vector index of the library: ~72% at 08:34 on 10-19, ETA ~evening 10-19 (estimate, recheck with docs/runbook.md).
+- Library vector index finished 10-20 evening (233,230 chunks). OCR queue still running (84 books done at 18:44). Merge DRY RUN 10-20 18:45: 83 books, pages kept 29,488 (low trust 2,153), emptied 789; --apply NOT run (owner go-ahead). Overnight chain: jarvis_drafts/overnight/overnight_chain.ps1 -> overnight_status.md.
 - Retrieval: weighted RRF (vector 1.5 : BM25 1, k=60); MRR 0.340 → 0.497 on 15 queries (overfit risk).
 - 50-question eval set: BM25-only EN Hit@10 0.96, KO 0.20 → Korean glossary rewrite drafted in jarvis_drafts/overnight/quality (27 tests pass; BM25 KO Hit 0.88, ablated 0.64; hybrid eval + app/ integration pending).
 - Cloud: live, release 0.4 (deployed 10-20: rate-limit hardening + RRF_K=3). 2,000/2,000 papers indexed. Smoke: /health ok (docs 2000), /docs 404, xff_hops 1, EN+KO sample questions answered with citations.
-- Hybrid eval done (docs/experiments.md): RRF_K 60→3 fixed EN Hit@10 0.71→0.96. Korean glossary rewrite now in app/ (working tree, NOT committed/deployed; 102 tests pass; 70-question MRR 0.927→0.935, small gain; JARVIS_REWRITE=0 turns it off).
+- Hybrid eval done (docs/experiments.md): RRF_K 60→3 fixed EN Hit@10 0.71→0.96. Korean glossary rewrite in app/ (commit 09e462a; 102 tests pass; 70-question MRR 0.927→0.935, small gain; JARVIS_REWRITE=0 turns it off).
+- Cloud 0.5 deployed 10-20 (revision 00008): /health ok (docs 2000), /docs 404; live check: Korean question gets glossary terms added to search_query, a question with a rare English term (CheXpert) is left unchanged. xff_hops log check still to do. 09e462a not yet pushed to origin (CI runs on main only: runs #1-#3 passed).
 - CI: .github/workflows/tests.yml committed (tests + secret/data guard). Check Actions tab result.
 - Library (local only, C:\jarvis_data\library): 767 books extracted (487 text, 288 scanned/failed);
-  BM25 index done (233,230 chunks); vector index RUNNING (~3.6 chunks/s, ETA ~2026-10-19 04:00, resumable);
+  BM25 + vector index done for the 487 text books (233,230 chunks); scanned books enter the index only after merge_ocr --apply;
   quality.csv: 170 good / 317 check / 0 bad (thresholds strict, calibrate before OCR).
 - Agents: weekly usage limit hit; resets 2026-10-22 02:00 KST. Use agents sparingly; prefer Sonnet.
 
 ## 9. Next steps (in order)
 1. 이지케어텍 application (deadline ~10/24–25, verify on posting): review drafts in career/ezcaretech.
-2. Review + commit the Korean rewrite integration (app/query_rewrite.py, tests/test_query_rewrite.py), then deploy 0.5 (-DryRun first).
+2. Push feature/library-ui, check xff_hops in the Cloud Run log, then merge to main so CI runs on the new code.
 3. Library: vector index finish → merge_ocr --dry-run → --apply (owner go-ahead) → rebuild indexes → 10 test questions.
 4. CI check (Actions tab), PUBLIC_CHECKLIST.md security pass, docs/deploy.md update.
 (Done: arXiv index 2,000/2,000, hybrid eval, deploy 0.4, streaming + library UI already in main.py.)
