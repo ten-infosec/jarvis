@@ -16,6 +16,7 @@ app/rag.py         local engine (e5 + Chroma + BM25 + Ollama)
 app/rag_cloud.py   cloud engine (Gemini embed/LLM + Chroma + BM25, BM25 fallback)
 app/static/        web chat (escapeHtml/safeUrl — keep XSS protection)
 scripts/           extract_*, build_*_index, eval_*, deploy.ps1, extract_library.py
+scripts/security_feed/  public AI-security news: collect.py + sources.json + run_daily.ps1 → morning_paper.py --edition security
 tests/             pytest with fake engines (no keys, no network)
 docs/              experiments.md, deploy.md (incidents), runbook (planned)
 ```
@@ -78,22 +79,29 @@ Never present 🟠 as 🟢. When unsure, downgrade.
 | Human (태은) | approves commit/push/deploy | final say |
 Run agents sparingly (usage limits). Reviews must be independent of the worker.
 
-## 8. Current state (updated 2026-10-18 10:50 KST)
+## 8. Current state (updated 2026-10-19 09:30 KST)
+- Branch feature/library-ui (commit 154850b, pushed to origin): library search in web UI (source "library"), original-PDF page links,
+  streaming answers (/ask/stream), OCR merge tool (scripts/library/merge_ocr.py, dry-run default). 82 tests pass.
+- Library OCR (local): background queue running; merge into the index only after the vector index finishes
+  (merge_ocr --dry-run, then --apply with the owner's go-ahead). Ops steps: docs/runbook.md.
+- Library OCR merge DONE (10-26 20:25, owner go-ahead): 272 scanned books merged, pages kept 103,759 (low trust 10,106), emptied 2,597; backups text_backup_before_ocr + manifest.jsonl.bak-20261026-202515. Keyword index +150,266 chunks (total 383,496); vector index complete 10-27 08:34 (383,496 chunks). Search check: 10 questions, 50 hits, 16 from OCR books, 0 page numbers out of range (titles/pages only). 16 hanja medicine books (5,588 pages) still scanned/not OCR'd.
 - Retrieval: weighted RRF (vector 1.5 : BM25 1, k=60); MRR 0.340 → 0.497 on 15 queries (overfit risk).
 - 50-question eval set: BM25-only EN Hit@10 0.96, KO 0.20 → Korean glossary rewrite drafted in jarvis_drafts/overnight/quality (27 tests pass; BM25 KO Hit 0.88, ablated 0.64; hybrid eval + app/ integration pending).
-- Cloud: live, release 0.3. 900/2,000 papers indexed. Code for 0.4 (rate-limit hardening) committed, NOT deployed.
+- Cloud: live, release 0.4 (deployed 10-20: rate-limit hardening + RRF_K=3). 2,000/2,000 papers indexed. Smoke: /health ok (docs 2000), /docs 404, xff_hops 1, EN+KO sample questions answered with citations.
+- Hybrid eval done (docs/experiments.md): RRF_K 60→3 fixed EN Hit@10 0.71→0.96. Korean glossary rewrite in app/ (commit 09e462a; 102 tests pass; 70-question MRR 0.927→0.935, small gain; JARVIS_REWRITE=0 turns it off).
+- Cloud 0.5 deployed 10-20 (revision 00008): /health ok (docs 2000), /docs 404; live check: Korean question gets glossary terms added to search_query, a question with a rare English term (CheXpert) is left unchanged. xff_hops log check still to do. 09e462a not yet pushed to origin (CI runs on main only: runs #1-#3 passed).
 - CI: .github/workflows/tests.yml committed (tests + secret/data guard). Check Actions tab result.
 - Library (local only, C:\jarvis_data\library): 767 books extracted (487 text, 288 scanned/failed);
-  BM25 index done (233,230 chunks); vector index RUNNING (~3.6 chunks/s, ETA ~2026-10-19 04:00, resumable);
+  BM25 + vector index done for 759 books (487 text + 272 OCR, 383,496 chunks); 16 hanja medicine books still scanned;
   quality.csv: 170 good / 317 check / 0 bad (thresholds strict, calibrate before OCR).
 - Agents: weekly usage limit hit; resets 2026-10-22 02:00 KST. Use agents sparingly; prefer Sonnet.
 
 ## 9. Next steps (in order)
-1. 이지케어텍 application (deadline ~10/24–25, verify on posting): review drafts in career/ezcaretech.
-2. After 16:00 KST (Gemini quota reset): `python scripts\build_arxiv_index.py` (remaining 1,100 papers).
-3. Hybrid eval on 50 questions (+ Korean rewrite) → apply streaming.patch → tests → deploy 0.4 with
-   `.\scripts\deploy.ps1 -Version 0.4 -DryRun` then real; verify xff_hops, /docs 404, rate limit.
-4. Connect library search to the web UI (after vector index finishes).
+1. (Cancelled 10-27: 이지케어텍 application — no further work; drafts stay in career/ezcaretech.)
+2. Push feature/library-ui, check xff_hops in the Cloud Run log, then merge to main so CI runs on the new code.
+3. Library: try it in the web UI (source 도서, local mode, Ollama); decide on the 16 hanja medicine books (Mac MLX test of Unlimited-OCR, see jarvis_drafts/overnight/library/gemini_ocr_trial/mac_ocr_test.py).
+4. CI check (Actions tab), PUBLIC_CHECKLIST.md security pass, docs/deploy.md update.
+(Done: arXiv index 2,000/2,000, hybrid eval, deploy 0.4, streaming + library UI already in main.py.)
 
 ## 10. Pointers
 - Experiments: docs/experiments.md · Deploy & incidents: docs/deploy.md

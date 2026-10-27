@@ -1,0 +1,45 @@
+{
+  "_comment": "Only hosts listed here are ever requested. Add a source here, not in collect.py.",
+  "max_items_per_source": 8,
+  "max_per_section": 14,
+  "priority_keywords": ["litellm", "x402", "agentic", "prompt injection", "malicious", "api key", "credential", "exfiltrat", "supply chain", "bun", "inference", "incident", "disclosure"],
+  "arxiv": [
+    {
+      "section": "최신 방어 논문",
+      "query": "(cat:cs.CR OR cat:cs.AI) AND (all:\"prompt injection\" OR all:\"agent security\" OR all:\"LLM agent\" AND all:defense)"
+    }
+  ],
+  "osv_packages": [
+    {"section": "공급망·악성 패키지", "ecosystem": "PyPI", "name": "litellm"},
+    {"section": "공급망·악성 패키지", "ecosystem": "npm", "name": "x402"},
+    {"section": "공급망·악성 패키지", "ecosystem": "PyPI", "name": "x402"},
+    {"section": "공급망·악성 패키지", "ecosystem": "npm", "name": "x402-fetch"},
+    {"section": "공급망·악성 패키지", "ecosystem": "npm", "name": "x402-express"}
+  ],
+  "rss": [
+    {
+      "section": "AI 보안 속보",
+      "name": "GitHub Security Blog",
+      "url": "https://github.blog/security/feed/",
+      "keywords": ["ai", "llm", "agent", "supply chain", "malicious", "npm", "pypi", "token", "secret"]
+    },
+    {
+      "section": "허깅페이스·AI 안전 타임라인",
+      "name": "Hugging Face Blog",
+      "url": "https://huggingface.co/blog/feed.xml",
+      "keywords": ["security", "safety", "malicious", "pickle", "vulnerab", "breach", "incident", "disclosure"]
+    },
+    {
+      "section": "AI 보안 속보",
+      "name": "OWASP GenAI Security Project",
+      "url": "https://genai.owasp.org/feed/",
+      "keywords": ["agentic", "top 10", "owasp", "agent", "llm"]
+    },
+    {
+      "section": "공급망·악성 패키지",
+      "name": "The Hacker News",
+      "url": "https://feeds.feedburner.com/TheHackersNews",
+      "keywords": ["litellm", "x402", "bun", "npm", "pypi", "malicious package", "api key", "ai agent", "llm", "inference"]
+    }
+  ]
+}

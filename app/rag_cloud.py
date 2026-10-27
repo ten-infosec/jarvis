@@ -15,6 +15,8 @@ from google import genai
 from google.genai import types
 from rank_bm25 import BM25Okapi
 
+from app.query_rewrite import Glossary, latin_doc_freq, rewrite_query
+
 
 # ===== Settings =====
 load_dotenv()
@@ -29,10 +31,14 @@ LLM_MODEL = os.getenv("GEMINI_LLM_MODEL", "gemini-flash-latest")
 # Must match the index (768 dimensions)
 DIM = 768
 CANDIDATES = 50
-RRF_K = 60
+# Small k makes the top ranks of each list dominate, so a keyword-only hit at rank 1 is not pushed out by vector hits
+# (50-question eval, English Hit@10: 0.71 at k=60 -> 0.96 at k=3)
+RRF_K = 3
 W_VEC = 1.5
 W_BM25 = 1.0
 CONTEXT_CHARS = 1500
+# Korean question -> English glossary terms for BM25 (the corpus is English). JARVIS_REWRITE=0 turns it off
+USE_REWRITE = os.getenv("JARVIS_REWRITE", "1") != "0"
 
 # Request words in Korean and English that say HOW to answer, not WHAT to find
 STOPWORDS = {
@@ -88,6 +94,10 @@ class CloudRAG:
         self.bm25 = BM25Okapi([tokenize(self.docs[i]["text"]) for i in self.ids])
         self.col = chromadb.PersistentClient(path=INDEX_DIR).get_collection(COLLECTION)
 
+        # Korean -> English glossary and the document frequency of English tokens (loaded once at startup)
+        self.glossary = Glossary.load()
+        self.doc_freq = latin_doc_freq(d["text"] for d in self.docs.values())
+
     def _embed_query(self, query):
         res = self.client.models.embed_content(
             model=EMBED_MODEL,
@@ -98,12 +108,21 @@ class CloudRAG:
         return (v / np.linalg.norm(v)).tolist()
 
     def retrieve(self, question, source=None, mode="hybrid", top_n=5):
-        query = clean_query(question)
+        # The rewrite changes only the BM25 side of a Korean question (English terms added, BM25 weight lowered);
+        # the embedding model is multilingual, so the vector side always sees the cleaned original question.
+        # Questions with a rare English term and all English questions pass through unchanged
+        if USE_REWRITE:
+            rw = rewrite_query(question, self.glossary, doc_freq=self.doc_freq)
+            vec_query, bm25_query, w_bm25 = rw.vector_query, rw.bm25_query, rw.w_bm25
+        else:
+            vec_query = bm25_query = clean_query(question)
+            w_bm25 = W_BM25
+        query = bm25_query
 
         # --- Vector search, with graceful degradation ---
         vec_rank = []
         try:
-            out = self.col.query(query_embeddings=[self._embed_query(query)], n_results=CANDIDATES)
+            out = self.col.query(query_embeddings=[self._embed_query(vec_query)], n_results=CANDIDATES)
             vec_rank = [i for i in out["ids"][0] if i in self.docs]
         except Exception as e:
             # Embedding API down or over quota -> keep serving with keyword search only
@@ -116,9 +135,9 @@ class CloudRAG:
             order = sorted(range(len(scores)), key=lambda i: -scores[i])
             bm_rank = [self.ids[i] for i in order[:CANDIDATES] if scores[i] > 0]
 
-        # --- Weighted RRF (same weights chosen in E3) ---
+        # --- Weighted RRF (W_VEC chosen in E3; the BM25 weight comes from the rewrite rule, 1.0 unless a Korean question) ---
         fused = defaultdict(float)
-        for ranked, w in [(vec_rank, W_VEC), (bm_rank, W_BM25)]:
+        for ranked, w in [(vec_rank, W_VEC), (bm_rank, w_bm25)]:
             for rank, d in enumerate(ranked, start=1):
                 fused[d] += w / (RRF_K + rank)
         final = sorted(fused, key=lambda d: -fused[d])[:top_n]
@@ -150,7 +169,24 @@ class CloudRAG:
         )
         return out.text
 
+    def generate_stream(self, question, hits):
+        # Same prompt and config as generate(), but yields the answer piece by piece as Gemini writes it
+        if not hits:
+            yield "관련 논문을 찾지 못했어요. (No matching papers found.)"
+            return
+        context = "\n\n".join(f"[{h['n']}] ({h['date']}) {h['text']}" for h in hits)
+        stream = self.client.models.generate_content_stream(
+            model=LLM_MODEL,
+            contents=f"[Sources]\n{context}\n\n[Question]\n{question}",
+            config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT, temperature=0.2),
+        )
+        for chunk in stream:
+            # Some chunks carry only metadata (e.g. the final usage info) and have no text -> skip them
+            if chunk.text:
+                yield chunk.text
+
 
 # → 공개 논문만 다루는 클라우드 엔진을 만들겠다. 질문을 Gemini로 임베딩해 벡터 검색하고, BM25 결과와 1.5 : 1로 합친다.
 #   임베딩 API가 한도 초과나 장애로 실패하면 멈추지 않고 BM25만으로 검색을 계속한다(우아한 성능 저하).
 #   답변은 Gemini가 출처 번호를 붙여, 질문과 같은 언어로 쓴다.
+#   generate_stream은 같은 설정으로 generate_content_stream을 불러, 답변을 조각조각 바로 넘겨준다.
